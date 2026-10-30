@@ -7,11 +7,11 @@ useHead({
 <template>
   <div class="registration-shell">
     <header class="registration-header">
-      <NuxtLink to="/" class="registration-brand" aria-label="Identifica Trânsito — início">
+      <a href="/" class="registration-brand" aria-label="Identifica Trânsito — início">
         <span class="registration-logo"><img src="/images/registration/logo.webp" alt="" /></span>
         <span>identifica<strong>trânsito<span>.</span></strong></span>
-      </NuxtLink>
-      <NuxtLink to="/" class="registration-back">Voltar ao site <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg></NuxtLink>
+      </a>
+      <a href="/" class="registration-back">Voltar ao site <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg></a>
     </header>
     <main class="registration-layout">
       <aside class="registration-story" aria-labelledby="registration-story-title">
@@ -27,7 +27,7 @@ useHead({
       <section class="registration-form-panel" aria-label="Criar conta">
         <nav class="registration-tabs" aria-label="Acesso à plataforma">
           <span aria-current="page">Criar conta</span>
-          <NuxtLink to="/auth/login">Entrar</NuxtLink>
+          <a href="/auth/login">Entrar</a>
         </nav>
         <slot />
       </section>

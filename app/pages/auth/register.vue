@@ -75,7 +75,7 @@
 
       successMessage.value = 'Conta criada com sucesso. Voce pode entrar agora.';
       toast.add({ severity: 'success', summary: 'Sucesso', detail: successMessage.value, life: 5000 });
-      await navigateTo('/auth/login');
+      await navigateTo('/auth/login', { external: true });
     } catch (error) {
       if (error?.data?.errors) {
         const errorsArray = Object.values(error.data.errors).flat();
