@@ -1,7 +1,7 @@
 <script setup>
   import { computed, ref } from 'vue';
   import { mockDemoAccounts } from '~/mocks/api';
-  import LayoutAuth from '~/components/auth/LayoutAuth.vue';
+  import RegistrationShell from '~/components/auth/RegistrationShell.vue';
   import InputText from '~/components/forms/InputText.vue';
   import InputPassword from '~/components/forms/InputPassword.vue';
   import Button from '~/components/forms/Button.vue';
@@ -54,7 +54,7 @@
       auth.setSession(token, user);
 
       const userType = getUserType(user);
-      await navigateTo(getDashboardByType(userType));
+      await navigateTo(getDashboardByType(userType), { external: true });
     } catch (error) {
       const apiMessage = error?.data?.message || error?.data?.error;
       errorMessage.value = apiMessage || error?.message || 'Nao foi possivel fazer login. Tente novamente.';
@@ -74,12 +74,12 @@
 
 
 <template>
-  <LayoutAuth>
-    <h1 class="font-bold text-center lg:text-left text-it-primary mb-2">Fazer Login</h1>
-    <p class="text-it-gray text-md text-center lg:text-left mb-8">Acessar sua conta para gerenciar seus veículos e etiquetas.</p>
+  <RegistrationShell mode="login">
+    <h1>Bom ter você por aqui.</h1>
+    <p class="login-description">Entre na sua conta para acompanhar seus veículos, etiquetas e pedidos.</p>
 
-    <form @submit.prevent="handleLogin" class="space-y-6">
-      <!-- <p v-if="errorMessage" class="text-sm text-red-600">{{ errorMessage }}</p> -->
+    <form @submit.prevent="handleLogin" class="login-fields space-y-6">
+      <p v-if="errorMessage" class="login-error" role="alert">{{ errorMessage }}</p>
       <!-- Email -->
       <InputText
         v-model="email"
@@ -107,15 +107,15 @@
           inputClass="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent placeholder-gray-400"
         />
         <div class="text-right mt-2">
-          <NuxtLink to="/auth/forgot-password" class="text-[12.5px] text-blue-600 hover:text-blue-700 font-medium">
+          <a href="/auth/forgot-password" class="text-[12.5px] text-blue-600 hover:text-blue-700 font-medium">
             Esqueceu sua senha?
-          </NuxtLink>
+          </a>
         </div>
       </div>
 
       <!-- Botão Entrar -->
       <Button type="submit" fullWidth size="md" buttonClass="auth-primary-button" :loading="loading">
-        <span>Acessar a Plataforma</span>
+        <span>Entrar na minha conta</span>
         <i class="pi pi-arrow-right text-base" aria-hidden="true"></i>
       </Button>
     </form>
@@ -141,34 +141,27 @@
     <!-- Cadastro -->
     <p class="text-center text-gray-600 text-base mt-6">
       Não tem uma conta? 
-      <NuxtLink to="/auth/register" class="text-blue-600 hover:text-blue-700 font-medium">
-        Cadastrar-se
-      </NuxtLink>
+      <a href="/auth/register" class="text-blue-600 hover:text-blue-700 font-medium">
+        Criar minha conta
+      </a>
     </p>
-  </LayoutAuth>
+  </RegistrationShell>
 </template>
 
 
 <style scoped>
-  h1 {
-    text-align: center;
-    font-size: 28px;
-    font-weight: 600;
-  }
-
-  :deep(.auth-primary-button) {
-    height: 52px;
-    transition: background-color 180ms ease;
-  }
-
-  :deep(button.auth-primary-button:hover:not(:disabled)) {
-    background-color: #1739d4;
-  }
-
-  .text-it-gray {
-    text-align: center;
-  }
-
+h1{font-family:Manrope,Arial,sans-serif;color:#181a2b;font-size:36px;font-weight:600;line-height:1.2;letter-spacing:-1.2px;margin:0 0 14px}
+.login-description{color:#646777;font-size:15px;line-height:1.75;margin:0 0 32px;max-width:390px}
+.login-fields{display:grid;gap:24px}.login-fields>:not(:first-child){margin-top:0!important}
+:deep(label){font-size:14px;font-weight:600;color:#181a2b;margin-bottom:9px}:deep(label .text-red-500){display:none}
+:deep(.p-inputtext){width:100%;height:54px!important;border-radius:9px;border:1px solid #dcdde7;background:#fff;color:#181a2b;font-family:'DM Sans',Arial,sans-serif;font-size:15px;box-shadow:none}
+:deep(input::placeholder){color:#858997}:deep(.p-inputtext:focus){border-color:#2420db!important;box-shadow:0 0 0 3px #2420db15!important}:deep(.p-inputicon){font-size:15px;color:#9196a6}
+.login-fields a{display:inline-flex;color:#2420db;font-size:13px;line-height:1.5;margin-top:4px;text-decoration:none}.login-fields a:hover{text-decoration:underline}
+:deep(.auth-primary-button){background:#2420db;color:#fff;border-radius:9px;height:54px!important;font-size:15px;font-weight:650;justify-content:space-between;padding-inline:22px;transition:background-color .2s}:deep(.auth-primary-button:hover:not(:disabled)){background:#1510a5}
+form+p{text-align:center;color:#646777;font-size:14px;line-height:1.7;margin-top:26px}form+p a{color:#2420db;font-weight:600}
+.login-error{padding:13px 16px;border:1px solid #f2c5c5;background:#fff1f1;border-radius:9px;color:#a52c2c;font-size:14px;line-height:1.5;margin:0}
+a:focus-visible{outline:3px solid #2420db;outline-offset:4px;border-radius:3px}
+@media(max-width:800px){h1{font-size:31px}.login-description{margin-bottom:26px}.login-fields{gap:22px}:deep(.p-inputtext){font-size:16px}}
   .demo-access {
     margin-top: 1.5rem;
     padding-top: 1.25rem;
@@ -226,50 +219,4 @@
     .demo-access__grid { grid-template-columns: 1fr; }
   }
 
-  :deep(label .text-red-500) {
-    display: none;
-  }
-
-  #col-one {
-    position: relative;
-
-    &::before {
-      content: '';
-      position: absolute;
-      top: -45vh;
-      left: 50%;
-      width: 760px;
-      height: 760px;
-      background: #D9D9D9;
-      background: linear-gradient(180deg,rgba(217, 217, 217, 0.25) 0%, rgba(255, 255, 255, 0) 100%);
-      z-index: 1;
-      border-radius: 50%;
-      transform: translateX(-50%);
-    }
-
-    &::after {
-      content: '';
-      position: absolute;
-      top: -20vh;
-      left: 50%;
-      width: 294px;
-      height: 294px;
-      background: #1422E4;
-      z-index: 2;
-      border-radius: 50%;
-      transform: translateX(-50%);
-    }
-  }
-
-  #circle {
-    background: #fff;
-    background: linear-gradient(201deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0));
-    opacity: .1
-  }
-
-  :deep(.p-carousel) {
-    --p-carousel-indicator-background: #424EFF;
-    --p-carousel-indicator-hover-background: rgba(255, 255, 255, 0.6);
-    --p-carousel-indicator-active-background: #BABFFF;
-  }
 </style>
