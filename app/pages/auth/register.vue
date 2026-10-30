@@ -1,6 +1,6 @@
 <script setup>
   import { computed, ref } from 'vue';
-  import LayoutAuth from '~/components/auth/LayoutAuth.vue';
+  import RegistrationShell from '~/components/auth/RegistrationShell.vue';
   import InputText from '~/components/forms/InputText.vue';
   import InputPassword from '~/components/forms/InputPassword.vue';
   import SelectInput from '~/components/forms/SelectInput.vue';
@@ -92,11 +92,11 @@
 </script>
 
 <template>
-  <LayoutAuth hiddenLinksFooter>
-    <h1 class="w-full font-bold text-center text-it-primary mb-2">Criar Conta</h1>
-    <p class="register-description w-full text-it-gray text-md text-center mb-8">Preencher os dados abaixo para criar sua conta.</p>
+  <RegistrationShell>
+    <h1 class="w-full font-bold text-center text-it-primary mb-2">Crie sua conta</h1>
+    <p class="register-description w-full text-it-gray text-md text-center mb-8">Preencha seus dados para começar a fazer parte do Identifica Trânsito.</p>
 
-    <form ref="formRef" @submit.prevent="handleRegister" class="space-y-4">
+    <form ref="formRef" @submit.prevent="handleRegister" class="registration-fields space-y-4">
       <InputText
         v-model="formData.fullName"
         type="text"
@@ -191,7 +191,7 @@
       </div>
 
       <!-- Aceite de Termos -->
-      <div class="flex items-start gap-3 pt-2 mb-6">
+      <div class="registration-consent flex items-start gap-3 pt-2 mb-6">
         <input
           type="checkbox"
           v-model="formData.acceptTerms"
@@ -221,38 +221,20 @@
         Fazer Login
       </NuxtLink>
     </p>
-  </LayoutAuth>
+  </RegistrationShell>
 </template>
 
 <style scoped>
-  h1 {
-    color: var(--color-gray-800);
-    text-align: center;
-    font-size: 28px;
-    font-weight: 600;
-  }
-
-  .register-description {
-    color: #666;
-    text-align: center;
-  }
-
-  form + p {
-    font-size: 1rem;
-    line-height: 1.5rem;
-  }
-
-  :deep(label .text-red-500) {
-    display: none;
-  }
-
-  :deep(.auth-primary-button) {
-    height: 52px;
-    transition: background-color 180ms ease;
-  }
-
-  :deep(button.auth-primary-button:hover:not(:disabled)) {
-    background-color: #1739d4;
-  }
-
+h1{font-family:Manrope,Arial,sans-serif;color:#181a2b!important;text-align:left!important;font-size:35px;font-weight:600;line-height:1.2;letter-spacing:-1.2px;margin:0 0 12px}
+.register-description{color:#646777;text-align:left;font-size:14px;line-height:1.7;margin-bottom:28px}
+.registration-fields{display:grid;gap:18px}.registration-fields>:not(:first-child){margin-top:0!important}.registration-fields>.grid{gap:18px 16px}
+:deep(label){font-size:13px;font-weight:600;color:#181a2b;margin-bottom:7px}:deep(label .text-red-500){display:none}
+:deep(.p-inputtext),:deep(.p-inputmask),:deep(.p-select){width:100%;height:50px!important;min-height:50px;border-radius:9px;border:1px solid #dcdde7;background:#fff;color:#181a2b;font-family:'DM Sans',Arial,sans-serif;font-size:14px;box-shadow:none}
+:deep(input::placeholder),:deep(.p-select-label.p-placeholder){color:#858997}:deep(.p-inputtext:focus),:deep(.p-inputmask:focus),:deep(.p-select.p-focus){border-color:#2420db!important;box-shadow:0 0 0 3px #2420db15!important}
+:deep(.p-select-label){padding-block:0;display:flex;align-items:center}:deep(.p-inputicon){font-size:15px;color:#9196a6}
+.registration-consent{padding-top:4px;margin-bottom:0;gap:10px}.registration-consent input{accent-color:#2420db;flex-shrink:0}.registration-consent label{font-size:12px;line-height:1.75;font-weight:400;margin-bottom:0;color:#646777}.registration-consent a{color:#2420db}
+:deep(.auth-primary-button){background:#2420db;color:#fff;border-radius:9px;height:54px!important;font-size:14px;font-weight:650;justify-content:space-between;padding-inline:22px;transition:background-color .2s}:deep(.auth-primary-button:hover:not(:disabled)){background:#1510a5}
+form+p{text-align:center;color:#646777;font-size:13px;line-height:1.7;margin-top:22px}form+p a{color:#2420db}
+@media(max-width:800px){h1{font-size:30px}.register-description{margin-bottom:24px}}
+@media(max-width:639px){.registration-fields>.grid{grid-template-columns:1fr;gap:17px}:deep(.p-inputtext),:deep(.p-inputmask),:deep(.p-select){font-size:16px}}
 </style>
