@@ -217,9 +217,9 @@
     <!-- Já tem conta -->
     <p class="text-center text-gray-600 text-sm mt-6">
       Já tem uma conta? 
-      <NuxtLink to="/auth/login" class="text-blue-600 hover:text-blue-700 font-medium">
+      <a href="/auth/login" class="text-blue-600 hover:text-blue-700 font-medium">
         Fazer Login
-      </NuxtLink>
+      </a>
     </p>
   </RegistrationShell>
 </template>
