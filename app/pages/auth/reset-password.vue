@@ -1,7 +1,8 @@
 <script setup>
   import { ref, computed } from 'vue';
   import { useRoute } from 'vue-router';
-  import LayoutAuth from '~/components/auth/LayoutAuth.vue';
+  import RegistrationShell from '~/components/auth/RegistrationShell.vue';
+  import { ArrowLeft, ArrowRight, KeyRound, ShieldCheck, CircleAlert, Check, X } from '@lucide/vue';
   import InputPassword from '~/components/forms/InputPassword.vue';
   import PasswordStrengthIndicator from '~/components/forms/PasswordStrengthIndicator.vue';
   import Button from '~/components/forms/Button.vue';
@@ -97,124 +98,35 @@
 </script>
 
 <template>
-  <LayoutAuth>
-    <!-- Token inválido -->
-    <div v-if="invalidToken" class="text-center">
-      <div class="mb-6 inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full">
-        <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4v.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-        </svg>
-      </div>
-      <h1 class="text-[28px] font-bold text-it-primary mb-2">Link inválido</h1>
-      <p class="text-it-gray text-md mb-8 leading-6">
-        O link de recuperação de senha é inválido ou expirou.
-      </p>
-      <div class="space-y-4">
-        <NuxtLink to="/auth/forgot-password" class="inline-block w-full">
-          <Button fullWidth variant="primary">
-            Solicitar novo link
-          </Button>
-        </NuxtLink>
-        <div class="flex justify-center gap-4">
-          <NuxtLink to="/auth/login">
-            Voltar para o login
-          </NuxtLink>
-          <span>|</span>
-          <NuxtLink to="/auth/register">
-            Criar nova conta
-          </NuxtLink>
-        </div>
-      </div>
+  <RegistrationShell mode="recovery" class="reset-shell">
+    <div v-if="invalidToken" class="reset-content" role="alert">
+      <span class="reset-icon reset-warning"><CircleAlert :size="28" :stroke-width="1.6" aria-hidden="true" /></span>
+      <h1>Vamos tentar de novo?</h1>
+      <p class="reset-description">Este link é inválido ou expirou. Solicite um novo e-mail para redefinir sua senha com segurança.</p>
+      <a href="/auth/forgot-password" class="reset-primary reset-request">Solicitar novo link <ArrowRight :size="19" aria-hidden="true" /></a>
+      <p class="reset-bottom"><a href="/auth/login"><ArrowLeft :size="17" aria-hidden="true" /> Voltar para o login</a></p>
     </div>
-
-    <!-- Formulário de reset -->
-    <div v-else>
-      <h1 class="text-[28px] font-bold text-it-primary mb-2">Redefinir Senha</h1>
-      <p class="text-it-gray text-md mb-8">
-        Crie uma nova senha para sua conta.
-      </p>
-
-      <form @submit.prevent="handleResetPassword" class="space-y-6">
-        <!-- Primeira Senha -->
+    <div v-else class="reset-content">
+      <span class="reset-icon"><KeyRound :size="27" :stroke-width="1.6" aria-hidden="true" /></span>
+      <h1>Um novo começo.<br />Uma nova senha.</h1>
+      <p class="reset-description">Crie sua nova senha para voltar à sua conta e seguir com a gente.</p>
+      <form @submit.prevent="handleResetPassword" :aria-busy="loading" class="reset-form">
         <div>
-          <InputPassword
-            v-model="password"
-            id="password"
-            label="Nova Senha"
-            showIcon
-            icon="pi pi-lock"
-            placeholder="••••••••••••••••"
-            required
-            :minlength="8"
-            inputClass="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent placeholder-gray-400"
-          />
+          <InputPassword v-model="password" id="password" label="Nova senha" showIcon icon="pi pi-lock" placeholder="Digite sua nova senha" required :minlength="8" inputClass="w-full" />
           <PasswordStrengthIndicator :password="password" />
         </div>
-
-        <!-- Confirmação de Senha -->
         <div>
-          <InputPassword
-            v-model="confirmPassword"
-            id="confirmPassword"
-            label="Confirmar Senha"
-            showIcon
-            icon="pi pi-lock"
-            placeholder="••••••••••••••••"
-            required
-            :minlength="8"
-            inputClass="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent placeholder-gray-400"
-          />
-          <div v-if="confirmPassword" class="mt-2">
-            <div class="flex items-center gap-2">
-              <svg 
-                v-if="passwordsMatch" 
-                class="w-5 h-5 text-green-600" 
-                fill="none" 
-                stroke="currentColor" 
-                viewBox="0 0 24 24"
-              >
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-              </svg>
-              <svg 
-                v-else 
-                class="w-5 h-5 text-red-600" 
-                fill="none" 
-                stroke="currentColor" 
-                viewBox="0 0 24 24"
-              >
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-              </svg>
-              <p :class="passwordsMatch ? 'text-green-600' : 'text-red-600'" class="text-sm font-medium">
-                {{ passwordsMatch ? 'As senhas são iguais' : 'As senhas não correspondem' }}
-              </p>
-            </div>
-          </div>
+          <InputPassword v-model="confirmPassword" id="confirmPassword" label="Confirmar nova senha" showIcon icon="pi pi-lock" placeholder="Repita a nova senha" required :minlength="8" inputClass="w-full" />
+          <p v-if="confirmPassword" class="reset-match" :class="passwordsMatch ? 'reset-match-ok' : 'reset-match-error'" role="status" aria-live="polite"><Check v-if="passwordsMatch" :size="16" aria-hidden="true" /><X v-else :size="16" aria-hidden="true" />{{ passwordsMatch ? 'As senhas são iguais' : 'As senhas não correspondem' }}</p>
         </div>
-
-        <!-- Botão Redefinir -->
-        <Button 
-          type="submit" 
-          fullWidth 
-          :loading="loading"
-          :disabled="!isFormValid"
-        >
-          Redefinir Senha
-        </Button>
+        <Button type="submit" fullWidth size="md" buttonClass="reset-primary" :loading="loading" :disabled="!isFormValid"><span>{{ loading ? 'Salvando nova senha…' : 'Salvar nova senha' }}</span><ArrowRight v-if="!loading" :size="19" aria-hidden="true" /></Button>
       </form>
-
-      <!-- Voltar ao Login -->
-      <div class="text-center mt-6">
-        <NuxtLink to="/auth/login" class="text-sm text-blue-600 hover:text-blue-700 font-medium inline-flex items-center gap-2">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-          </svg>
-          Voltar para o login
-        </NuxtLink>
-      </div>
+      <div class="reset-note"><ShieldCheck :size="20" aria-hidden="true" /><p>Use pelo menos 8 caracteres. Combine letras, números e símbolos para uma senha mais forte.</p></div>
+      <p class="reset-bottom"><a href="/auth/login"><ArrowLeft :size="17" aria-hidden="true" /> Voltar para o login</a></p>
     </div>
-  </LayoutAuth>
+  </RegistrationShell>
 </template>
 
 <style scoped>
-/* Estilos herdados do LayoutAuth */
+.reset-shell :deep(.registration-layout){align-items:start}.reset-shell :deep(.registration-story){min-height:690px}.reset-content{color:#181a2b}.reset-icon{display:grid;place-items:center;width:60px;height:60px;border-radius:18px;background:#eeedff;color:#2420db;margin-bottom:24px}.reset-warning{background:#fff3e1;color:#a76b13}h1{font-family:Manrope,Arial,sans-serif;font-size:34px;font-weight:600;line-height:1.23;letter-spacing:-1.2px;margin:0 0 16px;color:#181a2b}.reset-description{font-size:15px;line-height:1.75;color:#646777;margin:0 0 30px;max-width:410px}.reset-form{display:grid;gap:22px}:deep(label){font-size:14px;font-weight:600;color:#181a2b;margin-bottom:9px}:deep(label .text-red-500){display:none}:deep(.p-inputtext){width:100%;height:54px!important;border-radius:9px;border:1px solid #dcdde7;background:#fff;color:#181a2b;font-family:'DM Sans',Arial,sans-serif;font-size:15px;box-shadow:none}:deep(.p-inputtext:focus){border-color:#2420db!important;box-shadow:0 0 0 3px #2420db15!important}:deep(input::placeholder){color:#858997}:deep(.p-inputicon){font-size:16px;color:#9196a6}.reset-primary,:deep(.reset-primary){background:#2420db;color:#fff;border-radius:9px;min-height:54px;height:auto!important;font-size:14px;font-weight:600;justify-content:space-between;padding:14px 20px;gap:14px;transition:background-color .2s}.reset-primary:hover,:deep(.reset-primary:hover:not(:disabled)){background:#1510a5}:deep(.reset-primary:disabled){background:#d9d8ec;color:#74718c;opacity:1;cursor:not-allowed}:deep(.reset-primary svg){flex-shrink:0}.reset-request{display:flex;align-items:center;text-decoration:none}.reset-note{display:flex;align-items:flex-start;gap:11px;padding:16px;border-radius:11px;border:1px solid #e6e6f0;background:#f0f0f9;color:#6c7083;margin:24px 0}.reset-note svg{flex-shrink:0;color:#7772bb;margin-top:1px}.reset-note p{font-size:13px;line-height:1.65;margin:0}.reset-bottom{text-align:center;margin:26px 0 0}.reset-bottom a{display:inline-flex;align-items:center;gap:8px;color:#2420db;font-size:14px;font-weight:500;text-decoration:none}.reset-bottom a:hover{text-decoration:underline}.reset-match{display:flex;align-items:center;gap:7px;font-size:13px;margin:10px 0 0;line-height:1.5}.reset-match-ok{color:#178158}.reset-match-error{color:#b13434}a:focus-visible{outline:3px solid #746eff;outline-offset:4px;border-radius:3px}@media(max-width:800px){.reset-shell :deep(.registration-story){min-height:230px}h1{font-size:29px}.reset-icon{width:52px;height:52px;border-radius:15px;margin-bottom:20px}.reset-description{margin-bottom:26px}:deep(.p-inputtext){font-size:16px}.reset-note{padding:14px}}
 </style>

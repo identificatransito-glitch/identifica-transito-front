@@ -5,7 +5,7 @@
   function isPublishedPage(url) {
     return url.origin === location.origin &&
       (url.pathname === '/' || url.pathname === '/index.html' ||
-       /^\/auth\/(register|login|forgot-password)\/?$/i.test(url.pathname));
+       /^\/auth\/(register|login|forgot-password|reset-password)\/?$/i.test(url.pathname));
   }
   document.addEventListener('click', function (event) {
     if (event.defaultPrevented || event.button !== 0 || event.metaKey ||
