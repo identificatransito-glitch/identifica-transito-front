@@ -1,0 +1,61 @@
+<script setup lang="ts">
+import { ArrowRight, CarFront, ClipboardList, Headset, UserRound, Plus, PackageCheck, Tag, Sun, CircleHelp } from '@lucide/vue';
+import OrderStatusItem from './OrderStatusItem.vue';
+defineProps<{
+    userName: string;
+    stats: { vehicles: number; tags: number };
+    loading: boolean;
+    loadingRecentOrders: boolean;
+    recentOrders: Array<{ id: string; title: string; status: 'em-andamento' | 'em-rota' | 'entregue' | 'cancelado' }>;
+}>();
+const shortcuts = [
+    { icon: CarFront, title: 'Meus veículos', text: 'Cadastre e gerencie seus veículos', to: '/dashboard/veiculos' },
+    { icon: ClipboardList, title: 'Meus pedidos', text: 'Acompanhe cada etapa da entrega', to: '/dashboard/pedidos' },
+    { icon: UserRound, title: 'Meu perfil', text: 'Seus dados sempre atualizados', to: '/dashboard/perfil' },
+    { icon: Headset, title: 'Precisa de ajuda?', text: 'Conte com o nosso suporte', to: '/dashboard/suporte' }
+];
+</script>
+
+<template>
+    <div class="user-overview">
+        <section class="user-welcome" aria-labelledby="welcome-title">
+            <div class="user-welcome-copy">
+                <span class="user-eyebrow"><Sun :size="16" aria-hidden="true" /> BOM TER VOCÊ AQUI</span>
+                <h1 id="welcome-title">{{ userName ? `Olá, ${userName}!` : 'Olá!' }}<br /><span>Vamos seguir juntos?</span></h1>
+                <p>Seus veículos, suas etiquetas e tudo o que conecta você a um trânsito mais humano.</p>
+                <NuxtLink to="/dashboard/veiculos/novo" class="user-button"><Plus :size="18" aria-hidden="true" /> Cadastrar veículo <ArrowRight :size="19" aria-hidden="true" /></NuxtLink>
+            </div>
+            <div class="user-welcome-photo"><img src="/images/registration/motorista.webp" alt="Motorista com a tag vermelha do Identifica Trânsito no para-brisa" /><span class="user-photo-caption">Uma tag. Muitas histórias.</span></div>
+        </section>
+
+        <section class="user-summary" aria-label="Resumo da sua conta" :aria-busy="loading">
+            <div><span class="user-summary-icon"><CarFront :size="23" aria-hidden="true" /></span><p><strong>{{ loading ? '—' : stats.vehicles }}</strong><span>Veículos cadastrados</span></p></div>
+            <div><span class="user-summary-icon"><Tag :size="23" aria-hidden="true" /></span><p><strong>{{ stats.tags }}</strong><span>Etiquetas cadastradas</span></p></div>
+            <a href="/projeto.html" class="user-community"><span class="user-color-dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span><p>Cinco cores.<strong>Mais respeito no caminho.</strong></p><ArrowRight :size="20" aria-hidden="true" /></a>
+        </section>
+
+        <section aria-labelledby="shortcuts-title">
+            <div class="user-section-heading"><h2 id="shortcuts-title">O que você precisa hoje?</h2><span>Tudo à mão, em um só lugar.</span></div>
+            <div class="user-shortcuts"><NuxtLink v-for="item in shortcuts" :key="item.to" :to="item.to"><span class="user-shortcut-icon"><component :is="item.icon" :size="24" :stroke-width="1.7" aria-hidden="true" /></span><h3>{{ item.title }}</h3><p>{{ item.text }}</p><ArrowRight class="user-shortcut-arrow" :size="19" aria-hidden="true" /></NuxtLink></div>
+        </section>
+
+        <div class="user-bottom-grid">
+            <section class="user-orders" aria-labelledby="orders-title" :aria-busy="loadingRecentOrders">
+                <div class="user-section-heading"><h2 id="orders-title">Seus últimos pedidos</h2><NuxtLink to="/dashboard/pedidos">Ver todos <ArrowRight :size="16" aria-hidden="true" /></NuxtLink></div>
+                <div v-if="loadingRecentOrders" class="user-orders-loading" role="status">Carregando seus pedidos…</div>
+                <div v-else-if="recentOrders.length" class="user-orders-list"><OrderStatusItem v-for="order in recentOrders" :key="order.id" :order-id="order.id" :title="order.title" :status="order.status" /></div>
+                <div v-else class="user-empty"><span><PackageCheck :size="32" :stroke-width="1.4" aria-hidden="true" /></span><h3>Sua próxima história começa aqui.</h3><p>Quando você fizer um pedido, poderá acompanhar a entrega das suas etiquetas neste espaço.</p><NuxtLink to="/dashboard/etiquetas">Conhecer as etiquetas <ArrowRight :size="17" aria-hidden="true" /></NuxtLink></div>
+            </section>
+            <aside class="user-project"><span class="user-eyebrow">UM SINAL DE CUIDADO</span><h2>Por trás de cada<br />tag, uma pessoa.</h2><p>Conheça o significado das cores e como esse pequeno gesto pode incentivar mais empatia no trânsito.</p><a href="/projeto.html#significado">Entenda as cinco cores <ArrowRight :size="18" aria-hidden="true" /></a><div class="user-color-dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div></aside>
+        </div>
+        <div class="user-help"><CircleHelp :size="20" aria-hidden="true" /><p>Uma dúvida no caminho? <NuxtLink to="/dashboard/suporte">Fale com a nossa equipe.</NuxtLink></p></div>
+    </div>
+</template>
+
+<style scoped>
+.user-overview{--brand:#2420db;font-family:'DM Sans',Arial,sans-serif;color:#181a2b;display:grid;gap:32px;max-width:1440px;margin:auto}.user-overview p,.user-overview h1,.user-overview h2,.user-overview h3{margin:0}.user-overview h1,.user-overview h2,.user-overview h3{font-family:Manrope,Arial,sans-serif}.user-overview a{text-decoration:none}.user-welcome{display:grid;grid-template-columns:1.08fr 1fr;min-height:320px;background:#eeedff;border-radius:24px;overflow:hidden}.user-welcome-copy{padding:36px 40px}.user-eyebrow{display:flex;align-items:center;gap:8px;font-size:11px;letter-spacing:1.5px;font-weight:700;color:var(--brand)}.user-welcome h1{font-size:clamp(27px,2.6vw,40px)!important;line-height:1.2;letter-spacing:-1.5px;font-weight:600;margin:18px 0 14px}.user-welcome h1 span{color:var(--brand)}.user-welcome p{color:#606376;max-width:390px;font-size:15px;line-height:1.7}.user-button{display:inline-flex;align-items:center;justify-content:center;gap:12px;background:var(--brand);color:white;min-height:48px;padding:12px 19px;border-radius:10px;font-size:14px;font-weight:600;margin-top:24px}.user-button:hover{background:#1815b6}.user-welcome-photo{position:relative;min-height:280px}.user-welcome-photo img{width:100%;height:100%;position:absolute;inset:0;object-fit:cover;object-position:85% center}.user-welcome-photo:after{content:'';position:absolute;inset:0;background:linear-gradient(0deg,#091526a8,transparent 50%)}.user-photo-caption{position:absolute;bottom:25px;left:28px;z-index:1;color:white;font-size:15px;font-weight:500}.user-summary{display:grid;grid-template-columns:1fr 1fr 1.3fr;border:1px solid #e5e5ef;background:white;border-radius:18px;padding:24px 0}.user-summary>div,.user-community{padding:0 28px;display:flex;align-items:center;gap:16px;min-width:0}.user-summary>div+div,.user-community{border-left:1px solid #e5e5ef}.user-summary-icon{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;background:#f0efff;color:var(--brand);flex-shrink:0}.user-summary p{display:grid;gap:4px}.user-summary strong{font-size:27px;font-weight:600;line-height:1.2}.user-summary p>span{font-size:13px;color:#66697b}.user-community{color:#66697b}.user-community p{font-size:13px}.user-community p strong{font-size:14px;color:#181a2b}.user-community>svg{margin-left:auto;flex-shrink:0;color:var(--brand)}.user-color-dots{display:flex;gap:6px;flex-wrap:wrap;max-width:55px}.user-color-dots i{width:12px;height:12px;border-radius:50%;background:#e54843}.user-color-dots i:nth-child(2){background:#332fff}.user-color-dots i:nth-child(3){background:#ffcf32}.user-color-dots i:nth-child(4){background:#fff;border:1px solid #d8dbe5}.user-color-dots i:nth-child(5){background:#24a46c}.user-section-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px}.user-section-heading h2{font-size:20px!important;font-weight:600;letter-spacing:-.5px}.user-section-heading>span{font-size:13px;color:#75788a}.user-section-heading a{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--brand);white-space:nowrap}.user-shortcuts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}.user-shortcuts>a{position:relative;border:1px solid #e5e5ef;background:#fff;border-radius:18px;padding:24px 22px;color:#181a2b;transition:transform .2s,border-color .2s}.user-shortcuts>a:hover{transform:translateY(-3px);border-color:#a6a3f5}.user-shortcut-icon{display:grid;place-items:center;width:48px;height:48px;border-radius:14px;background:#f4f3ff;color:var(--brand);margin-bottom:20px}.user-shortcuts h3{font-size:16px!important;font-weight:600;margin-bottom:7px}.user-shortcuts p{font-size:13px;color:#75788a;line-height:1.55;max-width:160px}.user-shortcut-arrow{position:absolute;right:20px;top:38px;color:var(--brand)}.user-bottom-grid{display:grid;grid-template-columns:1.55fr 1fr;gap:24px}.user-orders{border:1px solid #e5e5ef;border-radius:20px;background:white;padding:28px}.user-empty{display:flex;align-items:center;flex-direction:column;text-align:center;padding:20px 12px 12px}.user-empty>span{color:var(--brand);background:#f3f2ff;width:64px;height:64px;border-radius:20px;display:grid;place-items:center;margin-bottom:18px}.user-empty h3{font-size:17px!important;font-weight:600}.user-empty p{font-size:14px;line-height:1.7;color:#75788a;max-width:350px;margin:10px 0 18px}.user-empty a,.user-project a{display:inline-flex;align-items:center;gap:10px;font-size:14px;font-weight:600;color:var(--brand)}.user-orders-list{display:grid;gap:12px}.user-orders-loading{padding:60px 15px;text-align:center;color:#66697b}.user-project{border-radius:20px;background:#091526;color:white;padding:32px}.user-project .user-eyebrow{color:#b9b6ff}.user-project h2{font-size:28px!important;line-height:1.25;letter-spacing:-1px;color:#fff;font-weight:500;margin:20px 0 14px}.user-project p{font-size:14px;line-height:1.75;color:#bac4d3;max-width:320px}.user-project a{color:#fff;margin:22px 0 26px}.user-project .user-color-dots{max-width:none;gap:8px}.user-project .user-color-dots i{width:14px;height:14px}.user-help{display:flex;align-items:center;justify-content:center;gap:10px;font-size:13px;color:#75788a}.user-help svg,.user-help a{color:var(--brand)}.user-overview a:focus-visible{outline:3px solid #746eff;outline-offset:4px}.user-orders :deep(.dashboard-order-status){background:#fafafe;border-color:#ededf5}.user-orders :deep(.dashboard-order-status p){line-height:1.5}
+@media(min-width:1600px){.user-welcome{min-height:365px}.user-welcome-copy{padding:44px 48px}}
+@media(max-width:1100px){.user-welcome-copy{padding:28px}.user-shortcuts{gap:12px}.user-shortcuts>a{padding:20px 16px}.user-summary>div,.user-community{padding:0 18px}.user-community{gap:10px}.user-bottom-grid{grid-template-columns:1.3fr 1fr;gap:18px}.user-orders,.user-project{padding:24px}}
+@media(max-width:760px){.user-overview{gap:24px}.user-welcome{grid-template-columns:1fr}.user-welcome-copy{padding:28px 24px}.user-welcome h1{font-size:30px!important}.user-welcome-photo{min-height:190px;max-height:220px}.user-welcome-photo img{object-position:85% 36%}.user-summary{grid-template-columns:1fr 1fr;padding:20px 0}.user-summary>div{padding:0 16px;gap:10px}.user-summary-icon{width:38px;height:42px}.user-summary strong{font-size:25px}.user-summary p>span{font-size:12px}.user-community{grid-column:1/-1;border-left:0;border-top:1px solid #e5e5ef;margin-top:20px;padding:18px 20px 0}.user-community p{display:flex;gap:7px;flex-wrap:wrap}.user-community .user-color-dots{max-width:none}.user-shortcuts{grid-template-columns:repeat(2,minmax(0,1fr))}.user-shortcuts>a{padding:20px 16px}.user-shortcuts p{font-size:13px}.user-shortcut-arrow{right:15px;top:34px;width:16px}.user-section-heading h2{font-size:18px!important}.user-section-heading>span{display:none}.user-bottom-grid{grid-template-columns:1fr}.user-orders{padding:22px 18px}.user-help{align-items:flex-start;font-size:12px;line-height:1.6}.user-help svg{flex-shrink:0}.user-project h2{font-size:28px!important}}
+@media(prefers-reduced-motion:reduce){.user-shortcuts>a{transition:none}.user-shortcuts>a:hover{transform:none}}
+</style>
