@@ -17,7 +17,7 @@ export default defineNuxtConfig({
         prerender: {
             failOnError: false,
             crawlLinks: false,
-            routes: ['/', '/auth/register', '/auth/login']
+            routes: ['/', '/auth/register', '/auth/login', '/auth/forgot-password']
         }
     },
     runtimeConfig: {

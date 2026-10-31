@@ -1,12 +1,12 @@
 <script setup lang="ts">
-withDefaults(defineProps<{ mode?: 'register' | 'login' }>(), { mode: 'register' });
+withDefaults(defineProps<{ mode?: 'register' | 'login' | 'recovery' }>(), { mode: 'register' });
 useHead({
   link: [{ rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;650;700&family=Manrope:wght@400;500;600;700&display=swap' }]
 });
 </script>
 
 <template>
-  <div class="registration-shell" :class="{ 'login-shell': mode === 'login' }">
+  <div class="registration-shell" :class="{ 'login-shell': mode !== 'register' }">
     <header class="registration-header">
       <a href="/" class="registration-brand" aria-label="Identifica Trânsito — início">
         <span class="registration-logo"><img src="/images/registration/logo.webp" alt="" /></span>
@@ -20,21 +20,26 @@ useHead({
         <div class="registration-story-copy">
           <span class="registration-eyebrow">UM SINAL DE CUIDADO</span>
           <h2 v-if="mode === 'register'" id="registration-story-title">Uma tag no seu carro.<br />Mais respeito<br />no seu caminho.</h2>
-          <h2 v-else id="registration-story-title">Seu caminho.<br />Nossa comunidade.<br />Mais cuidado.</h2>
-          <p>{{ mode === 'login' ? 'Acompanhe seus veículos e etiquetas. Continue fazendo parte de um trânsito mais humano.' : 'Faça parte de uma ideia que aproxima informação, empatia e cuidado no trânsito.' }}</p>
+          <h2 v-else-if="mode === 'login'" id="registration-story-title">Seu caminho.<br />Nossa comunidade.<br />Mais cuidado.</h2>
+          <h2 v-else id="registration-story-title">Um novo acesso.<br />O mesmo cuidado.</h2>
+          <p>{{ mode === 'recovery' ? 'Vamos ajudar você a voltar. Recupere seu acesso e continue fazendo parte da nossa comunidade.' : mode === 'login' ? 'Acompanhe seus veículos e etiquetas. Continue fazendo parte de um trânsito mais humano.' : 'Faça parte de uma ideia que aproxima informação, empatia e cuidado no trânsito.' }}</p>
           <div class="registration-palette" aria-label="As cinco cores do projeto"><i></i><i></i><i></i><i></i><i></i></div>
           <span class="registration-caption">CINCO CORES. MUITAS HISTÓRIAS.</span>
         </div>
       </aside>
-      <section class="registration-form-panel" :aria-label="mode === 'login' ? 'Entrar na sua conta' : 'Criar conta'">
+      <section class="registration-form-panel" :aria-label="mode === 'recovery' ? 'Recuperar acesso à sua conta' : mode === 'login' ? 'Entrar na sua conta' : 'Criar conta'">
         <nav class="registration-tabs" aria-label="Acesso à plataforma">
           <template v-if="mode === 'register'">
             <span aria-current="page">Criar conta</span>
             <a href="/auth/login">Entrar</a>
           </template>
-          <template v-else>
+          <template v-else-if="mode === 'login'">
             <span aria-current="page">Entrar</span>
             <a href="/auth/register">Criar conta</a>
+          </template>
+          <template v-else>
+            <span aria-current="page">Recuperar acesso</span>
+            <a href="/auth/login">Entrar</a>
           </template>
         </nav>
         <slot />
