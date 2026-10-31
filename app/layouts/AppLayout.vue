@@ -9,6 +9,7 @@ import ConfirmDialog from 'primevue/confirmdialog';
 
 const { layoutConfig, layoutState, hideMobileMenu } = useLayout();
 const route = useRoute();
+useHead({ link: [{ rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700&display=swap' }] });
 const auth = useAuth();
 auth.init();
 
@@ -43,7 +44,7 @@ const containerClass = computed(() => {
 </script>
 
 <template>
-    <div class="layout-wrapper" :class="[containerClass, { 'layout-client': usesProductLayout, 'layout-admin': isAdmin || isSuperAdmin, 'layout-superadmin': isSuperAdmin }]">
+    <div class="layout-wrapper" :class="[containerClass, { 'layout-client': usesProductLayout, 'layout-admin': isAdmin || isSuperAdmin, 'layout-superadmin': isSuperAdmin, 'user-area-refresh': isClient }]">
         <AppTopbar />
         <AppSidebar />
         <div class="layout-main-container">
@@ -152,4 +153,8 @@ const containerClass = computed(() => {
 .p-confirmdialog.driver-notification-confirm .p-dialog-footer {
     padding-top: 0.1rem;
 }
+</style>
+
+<style>
+.user-area-refresh{--client-brand:#2420db;--it-primary:#2420db;background:#f8f8fc;font-family:'DM Sans',Arial,sans-serif;color:#181a2b}.user-area-refresh .layout-main-container{background:#f8f8fc}.user-area-refresh .layout-topbar.client-topbar{background:#fff;border-bottom-color:#e8e8f1}.user-area-refresh .layout-sidebar{background:#fff;border-right:1px solid #e8e8f1;box-shadow:none}.user-area-refresh .layout-menu a.active-route{background:#eeedff;color:#2420db}.user-area-refresh .client-search{background:#f8f8fc!important;border:1px solid #e8e8f1}.user-area-refresh .layout-footer{color:#75788a;font-size:12px}.user-area-refresh .layout-footer-credit{display:none}.user-area-refresh .layout-main{min-width:0}.user-area-refresh .client-mobile-nav{background:#fff}.user-area-refresh :is(button,a,input,select,textarea):focus-visible{outline-color:#746eff}
 </style>
