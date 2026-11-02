@@ -43,7 +43,7 @@ const assetWithBase = (path: string) => {
     return `${config.app.baseURL}${path}`.replace(/\/+/g, '/').replace(':/', '://');
 };
 
-const getTagImage = (tagColor: string) => assetWithBase(tagColor ? `/images/dashboard/etiquetas/${tagColor}.svg` : '/images/dashboard/etiquetas/azul.svg');
+const getTagImage = (tagColor: string) => assetWithBase(tagColor ? `/images/dashboard/etiquetas-v2/${tagColor}.svg` : '/images/dashboard/etiquetas-v2/azul.svg');
 
 const fetchVehicles = async () => {
     loading.value = true;

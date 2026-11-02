@@ -23,6 +23,8 @@ const assetWithBase = (path: string) => {
 const getTagImage = (tagColor: string) => {
     const color = String(tagColor || '').toLowerCase();
     const colorMap: Record<string, string> = {
+        branco: 'branco',
+        branca: 'branco',
         amarela: 'amarelo',
         amarelo: 'amarelo',
         azul: 'azul',
@@ -32,7 +34,7 @@ const getTagImage = (tagColor: string) => {
         laranja: 'azul'
     };
 
-    return assetWithBase(`/images/dashboard/etiquetas/${colorMap[color] || 'azul'}.svg`);
+    return assetWithBase(`/images/dashboard/etiquetas-v2/${colorMap[color] || 'azul'}.svg`);
 };
 
 useHead({

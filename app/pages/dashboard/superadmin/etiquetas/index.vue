@@ -80,7 +80,7 @@ onMounted(() => fetchTags());
                 <article v-for="tag in tags" :key="tag.id" class="tag-catalog-card overflow-hidden rounded-2xl border border-[#e1e8f3] bg-white">
                     <div class="relative flex h-48 items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_50%_35%,#ffffff_0%,#f4f6fd_47%,#e8eeff_100%)]">
                         <div class="absolute inset-x-0 bottom-0 h-14 bg-[linear-gradient(180deg,transparent,rgba(31,70,238,.08))]"></div>
-                        <img v-if="tag.color_name" :src="assetWithBase(`/images/dashboard/etiquetas/${tag.color_name}.svg`)" :alt="tag.name" class="relative z-10 h-32 w-32 object-contain drop-shadow-[0_12px_14px_rgba(31,70,238,.16)]" />
+                        <img v-if="tag.color_name" :src="assetWithBase(`/images/dashboard/etiquetas-v2/${tag.color_name}.svg`)" :alt="tag.name" class="relative z-10 h-32 w-32 object-contain drop-shadow-[0_12px_14px_rgba(31,70,238,.16)]" />
                         <span v-else class="relative z-10 flex h-20 w-20 items-center justify-center rounded-full bg-white text-[#1f46ee]"><Palette :size="34" /></span>
                         <span class="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full border border-white/80 bg-white/90 px-2.5 py-1 text-xs font-semibold text-[#52667f] backdrop-blur"><Palette :size="13" />{{ colorLabel(tag) }}</span>
                     </div>

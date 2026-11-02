@@ -35,7 +35,7 @@ export default defineNuxtConfig({
             { rel: 'icon', type: 'image/svg+xml', href: '/favicon-it.svg?v=20261031' },
             { rel: 'alternate icon', href: '/favicon.ico?v=20261031' },
             { rel: 'apple-touch-icon', href: '/apple-touch-icon.png?v=20261031' },
-            { rel: 'stylesheet', href: '/etiquetas-kit-v2.css?v=20261102' },
+            { rel: 'stylesheet', href: '/etiquetas-kit-v2.css?v=originais-20261102' },
             { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
             { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
             { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,400..900;1,400..900&display=swap' }

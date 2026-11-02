@@ -57,17 +57,17 @@
 :is(.it-kit-card,section:has(img.h-36.w-36.object-contain)) > div:nth-child(2) > button:hover{background:#1916b6!important;box-shadow:0 8px 18px -8px #2420db90}
 :is(.it-kit-card,section:has(img.h-36.w-36.object-contain)) > div:nth-child(2) > button:focus-visible{outline:3px solid #aba9ff;outline-offset:3px}
 /* Apply the same visual language to every color in the selection list. */
-:is(.it-tag-card,article:has(img.h-12.w-12[src*="/images/dashboard/etiquetas/"])){
+:is(.it-tag-card,article:has(img.h-12.w-12[src*="/images/dashboard/etiquetas"])){
  border-radius:22px!important;padding:22px!important;box-shadow:0 10px 24px -24px #1d2b55;
 }
-:is(.it-tag-card,article:has(img.h-12.w-12[src*="/images/dashboard/etiquetas/"])) > .my-5{
+:is(.it-tag-card,article:has(img.h-12.w-12[src*="/images/dashboard/etiquetas"])) > .my-5{
  margin:20px 0!important;padding:18px!important;min-height:132px;gap:14px!important;border:1px solid #e8e8f4!important;border-radius:16px!important;background:#f6f6fc!important;
 }
-:is(.it-tag-card,article:has(img.h-12.w-12[src*="/images/dashboard/etiquetas/"])) img.h-12.w-12{
+:is(.it-tag-card,article:has(img.h-12.w-12[src*="/images/dashboard/etiquetas"])) img.h-12.w-12{
  width:82px!important;height:82px!important;filter:drop-shadow(0 5px 8px #263a5118);
 }
-:is(.it-tag-card,article:has(img.h-12.w-12[src*="/images/dashboard/etiquetas/"])) input[type="checkbox"]{width:20px!important;height:20px!important;accent-color:#2420db}
-:is(.it-tag-card,article:has(img.h-12.w-12[src*="/images/dashboard/etiquetas/"])):has(input:checked){border-color:#2420db!important;box-shadow:0 0 0 2px #2420db14;background:#fbfaff!important}
+:is(.it-tag-card,article:has(img.h-12.w-12[src*="/images/dashboard/etiquetas"])) input[type="checkbox"]{width:20px!important;height:20px!important;accent-color:#2420db}
+:is(.it-tag-card,article:has(img.h-12.w-12[src*="/images/dashboard/etiquetas"])):has(input:checked){border-color:#2420db!important;box-shadow:0 0 0 2px #2420db14;background:#fbfaff!important}
 @media(max-width:650px){
  :is(.it-kit-card,section:has(img.h-36.w-36.object-contain)){padding:20px!important;border-radius:20px!important}
  :is(.it-kit-card,section:has(img.h-36.w-36.object-contain)) h2{font-size:21px!important}
@@ -78,3 +78,14 @@
  :is(.it-kit-card,section:has(img.h-36.w-36.object-contain)) > div:nth-child(2) > button{grid-column:1;grid-row:4;min-height:52px;font-size:15px!important}
 }
 @media(prefers-reduced-motion:reduce){:is(.it-kit-card,section:has(img.h-36.w-36.object-contain)) button{transition:none!important}}
+
+/* Original label files, without color or opacity treatments. */
+img[src*="/images/dashboard/etiquetas"]{filter:none!important;opacity:1!important}
+img[src*="/images/dashboard/etiquetas/"][src$="/amarelo.svg"]{content:url("/images/dashboard/etiquetas-v2/amarelo.svg")}
+img[src*="/images/dashboard/etiquetas/"][src$="/amarela.svg"]{content:url("/images/dashboard/etiquetas-v2/amarelo.svg")}
+img[src*="/images/dashboard/etiquetas/"][src$="/azul.svg"]{content:url("/images/dashboard/etiquetas-v2/azul.svg")}
+img[src*="/images/dashboard/etiquetas/"][src$="/vermelho.svg"]{content:url("/images/dashboard/etiquetas-v2/vermelho.svg")}
+img[src*="/images/dashboard/etiquetas/"][src$="/vermelha.svg"]{content:url("/images/dashboard/etiquetas-v2/vermelho.svg")}
+img[src*="/images/dashboard/etiquetas/"][src$="/verde.svg"]{content:url("/images/dashboard/etiquetas-v2/verde.svg")}
+img[src*="/images/dashboard/etiquetas/"][src$="/branco.svg"]{content:url("/images/dashboard/etiquetas-v2/branco.svg")}
+img[src*="/images/dashboard/etiquetas/"][src$="/branca.svg"]{content:url("/images/dashboard/etiquetas-v2/branco.svg")}
