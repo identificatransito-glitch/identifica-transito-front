@@ -40,7 +40,7 @@ export const USAGE_PROFILE_LABELS: Record<number, string> = {
 
 export const VEHICLE_TYPE_OPTIONS = [
   { label: 'Automóvel', value: VEHICLE_TYPE.AUTOMOVEL, icon: 'pi pi-car' },
-  // { label: 'Motocicleta', value: VEHICLE_TYPE.MOTOCICLETA, icon: 'pi pi-motorcycle' },
+  { label: 'Motocicleta', value: VEHICLE_TYPE.MOTOCICLETA, icon: 'pi pi-car' },
   { label: 'Caminhao', value: VEHICLE_TYPE.CAMINHAO, icon: 'pi pi-truck' },
   { label: 'Onibus', value: VEHICLE_TYPE.ONIBUS, icon: 'pi pi-bus' },
   { label: 'Outro', value: VEHICLE_TYPE.OUTRO, icon: 'pi pi-ellipsis-h' }
