@@ -32,7 +32,7 @@ const handleViewDetails = (id: number) => navigateTo(`/dashboard/veiculos/detalh
 </script>
 
 <template>
-    <article
+    <article class="it-tag-card"
         :class="[
             'flex h-full flex-col rounded-xl border p-5 transition-colors',
             vehicle.can_purchase_tag ? 'cursor-pointer' : 'cursor-default',
