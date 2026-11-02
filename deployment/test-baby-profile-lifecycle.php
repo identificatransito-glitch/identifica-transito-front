@@ -38,7 +38,8 @@ foreach ([1 => [5,'2024-11-02'],2 => [5,'2024-11-03'],3 => [5,'2024-12-02'],4 =>
 $check(NotifyBabyProfileLifecycleJob::expiryDate(Carbon::parse('2024-11-02 00:00:00','UTC'))->toDateString()==='2026-11-02', 'Calendar DATE must not shift with timezone');
 Carbon::setTestNow(Carbon::parse('2026-11-02 09:00:00','America/Sao_Paulo'));
 $exit = Artisan::call('vehicles:notify-baby-profile-expiring', ['--dry-run'=>true, '--as-of'=>'2026-11-02']);
-$check($exit===0 && str_contains(Artisan::output(),'"expiring":2') && str_contains(Artisan::output(),'"expired":1'),'Boundary eligibility counts');
+$consoleOutput = Artisan::output();
+$check($exit===0 && str_contains($consoleOutput,'"expiring":2') && str_contains($consoleOutput,'"expired":1'),'Boundary eligibility counts');
 $check(count(Queue::getFacadeRoot()->pushedJobs())===0, 'Dry run queued nothing'); $check(Mail::sent(BabyProfileLifecycleMail::class)->count()===0, 'Dry run sent nothing');
 $check(DB::table('notifications_drivers')->count()===0,'Dry run must not create notices');
 (new NotifyBabyProfileLifecycleJob(1,1,'2026-11-02','expired'))->handle();
