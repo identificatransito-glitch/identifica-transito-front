@@ -380,7 +380,7 @@ onMounted(() => fetchOrders());
                                 <div class="flex items-center justify-center gap-2">
                                     <img
                                         v-if="order.tag_slug"
-                                        :src="assetWithBase(`/images/dashboard/etiquetas/${order.tag_slug}.svg`)"
+                                        :src="assetWithBase(`/images/dashboard/etiquetas-v2/${order.tag_slug}.svg`)"
                                         :alt="order.tag_name"
                                         class="w-6 h-6 object-contain"
                                     />
@@ -465,7 +465,7 @@ onMounted(() => fetchOrders());
                             <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#f2f5ff]">
                                 <img
                                     v-if="order.tag_slug"
-                                    :src="assetWithBase(`/images/dashboard/etiquetas/${order.tag_slug}.svg`)"
+                                    :src="assetWithBase(`/images/dashboard/etiquetas-v2/${order.tag_slug}.svg`)"
                                     :alt="order.tag_name"
                                     class="h-8 w-8 object-contain"
                                 />

@@ -387,7 +387,7 @@ const printLabel = () => {
                                 <div class="flex items-center justify-center gap-2">
                                     <img
                                         v-if="order.tag_slug"
-                                        :src="assetWithBase(`/images/dashboard/etiquetas/${order.tag_slug}.svg`)"
+                                        :src="assetWithBase(`/images/dashboard/etiquetas-v2/${order.tag_slug}.svg`)"
                                         :alt="order.tag_name"
                                         class="w-6 h-6 object-contain"
                                     />
@@ -594,7 +594,7 @@ const printLabel = () => {
                 <div class="print-label__tag">
                     <img
                         v-if="printOrder.tag_slug"
-                        :src="assetWithBase(`/images/dashboard/etiquetas/${printOrder.tag_slug}.svg`)"
+                        :src="assetWithBase(`/images/dashboard/etiquetas-v2/${printOrder.tag_slug}.svg`)"
                         :alt="printOrder.tag_name"
                         class="print-label__tag-image"
                     />

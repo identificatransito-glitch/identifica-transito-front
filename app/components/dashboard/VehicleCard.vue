@@ -51,11 +51,15 @@ const assetWithBase = (path: string) => {
 const getEtiquetaImagePath = (cor: string | null) => {
     if (!cor) return undefined;
     const colorMap: { [key: string]: string } = {
-        'amarela': '/images/dashboard/etiquetas/amarelo.svg',
-        'azul': '/images/dashboard/etiquetas/azul.svg',
-        'verde': '/images/dashboard/etiquetas/verde.svg',
-        'vermelho': '/images/dashboard/etiquetas/vermelho.svg',
-        'laranja': '/images/dashboard/etiquetas/laranja.svg'
+        'amarela': '/images/dashboard/etiquetas-v2/amarelo.svg',
+        'amarelo': '/images/dashboard/etiquetas-v2/amarelo.svg',
+        'branco': '/images/dashboard/etiquetas-v2/branco.svg',
+        'branca': '/images/dashboard/etiquetas-v2/branco.svg',
+        'vermelha': '/images/dashboard/etiquetas-v2/vermelho.svg',
+        'azul': '/images/dashboard/etiquetas-v2/azul.svg',
+        'verde': '/images/dashboard/etiquetas-v2/verde.svg',
+        'vermelho': '/images/dashboard/etiquetas-v2/vermelho.svg',
+        'laranja': '/images/dashboard/etiquetas-v2/azul.svg'
     };
     const src = colorMap[cor.toLowerCase()];
     return src ? assetWithBase(src) : undefined;

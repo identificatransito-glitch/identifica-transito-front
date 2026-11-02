@@ -41,7 +41,7 @@ const vehicleData = ref({
     etiqueta: {
         codigo: '',
         tipo: 'Indisponível',
-        imagem: assetWithBase('/images/dashboard/etiquetas/azul.svg')
+        imagem: assetWithBase('/images/dashboard/etiquetas-v2/azul.svg')
     }
 });
 
@@ -62,8 +62,8 @@ const mapVehicleData = (vehicle: Record<string, any>) => {
             codigo: 'PIT' + vehicle.id,
             tipo: (getVehicleTypeLabel(vehicle.type) || vehicle.type_label || 'Indisponível').toUpperCase(),
             imagem: vehicle.tag_color
-                ? assetWithBase(`/images/dashboard/etiquetas/${vehicle.tag_color}.svg`)
-                : assetWithBase('/images/dashboard/etiquetas/azul.svg')
+                ? assetWithBase(`/images/dashboard/etiquetas-v2/${vehicle.tag_color}.svg`)
+                : assetWithBase('/images/dashboard/etiquetas-v2/azul.svg')
         }
     };
 };

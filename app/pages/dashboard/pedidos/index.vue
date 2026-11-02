@@ -650,7 +650,7 @@ const assetWithBase = (path: string) => {
 };
 
 const getTagImage = (tagSlug?: string | null) => {
-    const path = tagSlug ? `/images/dashboard/etiquetas/${tagSlug}.svg` : '/images/dashboard/etiquetas/amarelo.svg';
+    const path = tagSlug ? `/images/dashboard/etiquetas-v2/${tagSlug}.svg` : '/images/dashboard/etiquetas-v2/amarelo.svg';
     return assetWithBase(path);
 };
 
