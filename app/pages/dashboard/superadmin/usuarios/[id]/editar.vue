@@ -30,8 +30,6 @@ const form = ref({
     gender: '',
     type: null as number | null,
     pdv_id: null as number | null,
-    pdv_commission_type: null as number | null,
-    pdv_commission_value: '',
 });
 
 const TIPOS_USUARIO = [
@@ -39,10 +37,6 @@ const TIPOS_USUARIO = [
     { label: 'Admin', value: 2 },
 ];
 
-const TIPOS_TAXA_REPASSE = [
-    { label: 'Fixo (R$)', value: 1 },
-    { label: 'Percentual (%)', value: 2 },
-];
 
 const pointsOfSale = ref<Array<{ label: string; value: number }>>([]);
 const loadingPdv = ref(false);
@@ -84,8 +78,6 @@ const fetchUser = async () => {
         form.value.gender = getBiologicalSexFromUser(user);
         form.value.type = user.type != null ? Number(user.type) : null;
         form.value.pdv_id = user.pdv_id ?? null;
-        form.value.pdv_commission_type = user.pdv_commission_type != null ? Number(user.pdv_commission_type) : null;
-        form.value.pdv_commission_value = user.pdv_commission_value != null ? String(user.pdv_commission_value) : '';
     } catch (e) {
         toast.add({ severity: 'error', summary: 'Erro', detail: 'Não foi possível carregar os dados do usuário.', life: 5000 });
         navigateTo('/dashboard/superadmin/usuarios');
@@ -99,29 +91,6 @@ onMounted(() => {
     fetchUser();
 });
 
-const validatePdvCommission = (): string | null => {
-    if (form.value.type !== 2) return null;
-
-    if (form.value.pdv_commission_type == null) {
-        return 'Selecione o tipo de taxa de repasse.';
-    }
-    if (![1, 2].includes(form.value.pdv_commission_type)) {
-        return 'Tipo de taxa de repasse inválido.';
-    }
-    if (form.value.pdv_commission_value === '' || form.value.pdv_commission_value === null) {
-        return 'Informe o valor da taxa de repasse.';
-    }
-
-    const value = Number(form.value.pdv_commission_value);
-    if (Number.isNaN(value) || value < 0) {
-        return 'O valor da taxa não pode ser negativo.';
-    }
-    if (form.value.pdv_commission_type === 2 && value > 100) {
-        return 'O valor percentual não pode ser maior que 100.';
-    }
-
-    return null;
-};
 
 const handleSubmit = async () => {
     if (!form.value.name || !form.value.email || !form.value.type) {
@@ -129,11 +98,6 @@ const handleSubmit = async () => {
         return;
     }
 
-    const commissionError = validatePdvCommission();
-    if (commissionError) {
-        toast.add({ severity: 'error', summary: 'Taxa de repasse inválida', detail: commissionError, life: 3000 });
-        return;
-    }
 
     loading.value = true;
     try {
@@ -149,10 +113,6 @@ const handleSubmit = async () => {
             user_id_admin_pdv: form.value.pdv_id ? userId : null,
         };
 
-        if (form.value.type === 2) {
-            payload.pdv_commission_type = form.value.pdv_commission_type;
-            payload.pdv_commission_value = Number(form.value.pdv_commission_value);
-        }
 
         if (form.value.password) {
             payload.password = form.value.password;
@@ -333,44 +293,6 @@ const handleSubmit = async () => {
                     <template v-if="form.type === 2">
                     <div class="border-t border-gray-200"></div>
 
-                    <!-- Taxa de Repasse -->
-                    <div class="space-y-5">
-                        <h2 class="text-lg! font-semibold text-gray-900 border-b border-gray-100 pb-3">Taxa de Repasse</h2>
-                        <p class="text-sm text-gray-500 -mt-2">Defina como o repasse será calculado sobre as vendas deste PDV.</p>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <SelectInput
-                                v-model="form.pdv_commission_type"
-                                id="pdv_commission_type"
-                                label="Tipo de Taxa de Repasse"
-                                required
-                                :options="TIPOS_TAXA_REPASSE"
-                                placeholder="Selecione o tipo"
-                                optionLabel="label"
-                                optionValue="value"
-                                icon="pi pi-percentage"
-                                wrapperClass="w-full"
-                                :disabled="loading"
-                            />
-
-                            <FormInputText
-                                v-model="form.pdv_commission_value"
-                                id="pdv_commission_value"
-                                type="number"
-                                :label="form.pdv_commission_type === 2 ? 'Valor da Taxa (%)' : 'Valor da Taxa (R$)'"
-                                :placeholder="form.pdv_commission_type === 2 ? 'Ex: 10' : 'Ex: 5.00'"
-                                showIcon
-                                :icon="form.pdv_commission_type === 2 ? 'pi pi-percentage' : 'pi pi-dollar'"
-                                wrapper-class="w-full"
-                                inputClass="w-full"
-                                :disabled="loading"
-                                required
-                            />
-                        </div>
-                    </div>
-
-                    <div class="border-t border-gray-200"></div>
-
                     <!-- Ponto de Venda -->
                     <div class="space-y-5">
                         <h2 class="text-lg! font-semibold text-gray-900 border-b border-gray-100 pb-3">Ponto de Venda / Coleta</h2>
@@ -391,6 +313,7 @@ const handleSubmit = async () => {
                             filterPlaceholder="Buscar ponto de venda..."
                             :disabled="loading || loadingPdv"
                         />
+                        <p class="rounded-xl bg-[#f3f5ff] p-4 text-sm text-[#52667f]">O percentual de repasse é configurado uma única vez no PDV, e vale para todos os administradores vinculados. <NuxtLink :to="form.pdv_id ? `/dashboard/superadmin/pontos-de-venda/${form.pdv_id}/editar` : '/dashboard/superadmin/pontos-de-venda'" class="font-semibold text-it-primary underline">Configurar repasse no PDV</NuxtLink></p>
                     </div>
                     </template>
 

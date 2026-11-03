@@ -74,9 +74,7 @@ interface DashboardData {
 }
 
 interface PdvCommission {
-    admin_id: number;
-    admin_name: string;
-    admin_email: string;
+    staff_count: number;
     pdv_id: number | null;
     pdv_name: string | null;
     commission_type: 1 | 2 | null;
@@ -255,13 +253,13 @@ onMounted(() => {
                 <div v-else-if="topCommissions.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div
                         v-for="item in topCommissions"
-                        :key="item.admin_id"
+                        :key="item.pdv_id"
                         class="rounded-xl border border-[#e1e6ee] bg-white p-4 transition-shadow hover:shadow-sm"
                     >
                         <div class="mb-4 flex items-start justify-between gap-2">
                             <div class="min-w-0">
-                                <p class="truncate font-semibold text-[#0c0f1a]">{{ item.pdv_name || item.admin_name }}</p>
-                                <p class="truncate text-sm text-[#52667f]">{{ item.admin_email }}</p>
+                                <p class="truncate font-semibold text-[#0c0f1a]">{{ item.pdv_name }}</p>
+                                <p class="truncate text-sm text-[#52667f]">{{ item.staff_count }} acesso(s) vinculado(s)</p>
                             </div>
                             <span
                                 v-if="item.commission_type_label"
@@ -285,7 +283,7 @@ onMounted(() => {
                         <div v-if="item.commission_value !== null" class="mb-3 flex items-center justify-between text-sm text-[#64748b]">
                             <span>Taxa de repasse</span>
                             <span class="font-semibold text-[#52667f]">
-                                {{ item.commission_type === 2 ? `${item.commission_value}%` : formatCurrency(item.commission_value) }}
+                                {{ item.commission_value == null ? 'Não configurado' : `${Number(item.commission_value).toLocaleString('pt-BR')}%` }}
                             </span>
                         </div>
 
