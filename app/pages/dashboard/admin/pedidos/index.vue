@@ -1,8 +1,9 @@
 <script setup lang="ts">
+import ShippingLabelDialog from '~/components/orders/ShippingLabelDialog.vue';
 import HeroSection from '~/components/dashboard/HeroSection.vue';
 import PaginationControls from '~/components/PaginationControls.vue';
 import SelectInput from '~/components/forms/SelectInput.vue';
-import { BadgeCheck, Package } from '@lucide/vue';
+import { BadgeCheck, Package, Printer, QrCode } from '@lucide/vue';
 import { useToast } from 'primevue/usetoast';
 
 definePageMeta({ layout: 'dashboard' });
@@ -130,6 +131,7 @@ const getShipmentStatusLabel = (order: Order) => {
 const getOrderDisplayId = (order: Order) => order.mp_payment_id ?? String(order.id);
 
 // ── List ──────────────────────────────────────────────────────────────────────
+const printOrder = ref<Order | null>(null);
 const orders = ref<Order[]>([]);
 const loading = ref(false);
 const search = ref('');
@@ -274,6 +276,7 @@ onMounted(() => fetchOrders());
 
 <template>
     <div class="admin-page space-y-6 md:space-y-7">
+        <ShippingLabelDialog :order="printOrder" @close="printOrder = null" />
         <HeroSection
             title="Pedidos"
             :subtitle="isSuperAdminView ? 'Acompanhe pagamentos, entregas e atualizações de todos os pedidos da plataforma.' : 'Acompanhe pagamentos, entregas e atualizações dos pedidos vinculados ao seu PDV.'"
@@ -282,6 +285,7 @@ onMounted(() => fetchOrders());
         />
 
         <div class="admin-orders-page bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+            <a href="/retirada" class="mb-5 inline-flex items-center gap-2 rounded-lg border border-[#dcdafa] bg-[#f1f0ff] px-4 py-3 text-sm font-semibold text-[#2820d9]"><QrCode :size="19" /> Conferir QR de retirada</a>
             <div class="mb-4 flex flex-col gap-4 border-b border-gray-100 pb-5 lg:flex-row lg:justify-between">
                 <div>
                     <h2 class="text-[#172b4d]" style="margin: 0 0 6px; font-size: 25px; font-weight: 600; line-height: 1.1;">Gerenciamento de pedidos</h2>
@@ -354,6 +358,7 @@ onMounted(() => fetchOrders());
                             <th class="text-center py-3 px-4 text-gray-700 font-semibold">Pagamento</th>
                             <th class="text-center py-3 px-4 text-gray-700 font-semibold">Entrega</th>
                             <th class="text-center py-3 px-4 text-gray-700 font-semibold">Data</th>
+                            <th class="text-center py-3 px-4 text-gray-700 font-semibold">Imprimir</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -452,6 +457,7 @@ onMounted(() => fetchOrders());
                             </td>
 
                             <td class="py-3 px-4 text-center text-gray-500 whitespace-nowrap">{{ formatDate(order.created_at) }}</td>
+                            <td class="py-3 px-4 text-center"><button type="button" @click="printOrder = order" :aria-label="`Imprimir etiqueta do pedido ${order.id}`" class="inline-flex rounded-lg border border-slate-200 p-2.5 text-[#2820d9] hover:bg-[#f1f0ff]"><Printer :size="19" /></button></td>
                         </tr>
                     </tbody>
                 </table>
@@ -526,6 +532,7 @@ onMounted(() => fetchOrders());
                     </dl>
 
                     <p v-if="order.shipment?.tracking_code" class="mt-3 border-t border-[#edf1f6] pt-3 font-mono text-[11px] text-[#1f46ee]">{{ order.shipment.tracking_code }}</p>
+                    <button type="button" @click="printOrder = order" class="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-slate-200 py-3 text-sm font-semibold text-[#2820d9]"><Printer :size="18" /> Imprimir etiqueta</button>
                 </article>
             </div>
             </template>

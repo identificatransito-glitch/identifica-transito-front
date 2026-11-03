@@ -9,6 +9,7 @@ export default defineNuxtConfig({
         '/': { prerender: true },
         '/dashboard/**': { ssr: false },
         '/auth/**': { ssr: false },
+        '/retirada': { ssr: false },
         '/uikit/**': { prerender: false },
         '/uikit/ChartDoc': { prerender: false },
         '/uikit/TableDoc': { prerender: false },
@@ -17,7 +18,7 @@ export default defineNuxtConfig({
         prerender: {
             failOnError: false,
             crawlLinks: false,
-            routes: ['/', '/auth/register', '/auth/login', '/auth/forgot-password', '/auth/reset-password']
+            routes: ['/', '/auth/register', '/auth/login', '/auth/forgot-password', '/auth/reset-password', '/retirada']
         }
     },
     runtimeConfig: {

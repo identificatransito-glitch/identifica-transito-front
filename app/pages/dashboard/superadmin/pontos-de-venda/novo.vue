@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import InputPassword from '~/components/forms/InputPassword.vue';
+import PasswordStrengthIndicator from '~/components/forms/PasswordStrengthIndicator.vue';
+import PdvAddressFields from '~/components/forms/PdvAddressFields.vue';
 import HeroSection from '~/components/dashboard/HeroSection.vue';
 import FormInputText from '~/components/forms/InputText.vue';
 import Button from '~/components/forms/Button.vue';
@@ -11,6 +14,12 @@ useHead({ title: 'Novo Ponto de Venda - SuperAdmin | Identifica Trânsito' });
 const { $api } = useNuxtApp();
 const toast = useToast();
 const loading = ref(false);
+const addressBusy = ref(false);
+const addressValid = ref(true);
+const accessEmail = ref('');
+const accessPassword = ref('');
+const accessConfirmation = ref('');
+const createAccess = computed(() => Boolean(accessEmail.value.trim() || accessPassword.value || accessConfirmation.value));
 
 const form = ref({
     name: '',
@@ -23,16 +32,25 @@ const form = ref({
 });
 
 const handleSubmit = async () => {
+    if (addressBusy.value || !addressValid.value) {
+        toast.add({ severity: 'warn', summary: 'Confira o endereço', detail: addressBusy.value ? 'Aguarde a consulta do CEP.' : 'Confira o CEP e o tamanho do endereço.', life: 4000 });
+        return;
+    }
     if (!form.value.name) {
         toast.add({ severity: 'error', summary: 'Campos obrigatórios', detail: 'Preencha o nome do ponto de venda.', life: 3000 });
         return;
     }
 
+    if (createAccess.value && (!accessEmail.value.trim() || !form.value.responsible.trim() || accessPassword.value.length < 8 || accessPassword.value !== accessConfirmation.value)) {
+        toast.add({ severity: 'warn', summary: 'Confira o acesso do PDV', detail: 'Informe o responsável, o e-mail e uma senha com pelo menos 8 caracteres. A confirmação deve ser igual à senha.', life: 5000 });
+        return;
+    }
     loading.value = true;
     try {
-        await $api('/admin/pickup-points', {
+        await $api(createAccess.value ? '/admin/pickup-points-with-access' : '/admin/pickup-points', {
             method: 'POST',
             body: {
+                ...(createAccess.value ? { access_name: form.value.responsible.trim(), access_email: accessEmail.value.trim().toLowerCase(), password: accessPassword.value, password_confirmation: accessConfirmation.value } : {}),
                 name: form.value.name,
                 cnpj: form.value.cnpj || null,
                 address: form.value.address || null,
@@ -42,6 +60,7 @@ const handleSubmit = async () => {
                 active: form.value.active,
             },
         });
+        accessPassword.value = ''; accessConfirmation.value = '';
         toast.add({ severity: 'success', summary: 'Ponto de venda criado!', detail: 'O ponto de venda foi cadastrado com sucesso.', life: 3000 });
         navigateTo('/dashboard/superadmin/pontos-de-venda');
     } catch (error: any) {
@@ -102,17 +121,7 @@ const handleSubmit = async () => {
                             />
                         </div>
 
-                        <FormInputText
-                            v-model="form.address"
-                            id="address"
-                            label="Endereço"
-                            placeholder="Ex: Avenida Martins de Sá"
-                            showIcon
-                            icon="pi pi-map-marker"
-                            wrapper-class="w-full"
-                            inputClass="w-full"
-                            :disabled="loading"
-                        />
+                        <PdvAddressFields v-model="form.address" :disabled="loading" @busy="addressBusy = $event" @validity="addressValid = $event" />
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <FormInputText
@@ -168,7 +177,18 @@ const handleSubmit = async () => {
                         </div>
                     </div>
 
-                    <Button type="submit" fullWidth :loading="loading" size="lg">
+                    <section class="space-y-5">
+                        <h2 class="text-lg! font-semibold text-gray-900 border-b border-gray-100 pb-3">Acesso do responsável pelo PDV</h2>
+                        <p class="text-sm text-gray-500">Para criar o login junto com o ponto, informe o e-mail e a senha. O acesso será restrito ao PDV cadastrado. Se o responsável já possui uma conta, faça o vínculo na edição do usuário.</p>
+                        <FormInputText v-model="accessEmail" id="pdv-access-email" label="E-mail de acesso" type="email" autocomplete="username" placeholder="responsavel@exemplo.com.br" showIcon icon="pi pi-envelope" :disabled="loading" />
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div><InputPassword v-model="accessPassword" id="pdv-access-password" label="Nova senha" autocomplete="new-password" :disabled="loading" /><PasswordStrengthIndicator v-if="accessPassword" :password="accessPassword" /></div>
+                            <InputPassword v-model="accessConfirmation" id="pdv-access-confirmation" label="Confirmar nova senha" autocomplete="new-password" :disabled="loading" />
+                        </div>
+                        <p class="text-xs text-gray-500">Deixe os campos de acesso em branco para cadastrar somente o ponto, sem criar uma conta.</p>
+                    </section>
+
+                    <Button type="submit" fullWidth :loading="loading" :disabled="addressBusy || !addressValid" size="lg">
                         <i v-if="!loading" class="pi pi-check"></i>
                         Cadastrar Ponto de Venda
                     </Button>
