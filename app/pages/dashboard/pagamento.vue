@@ -239,7 +239,7 @@ const phoneSelecionado = computed(() => {
 cpf apro => 12345678909 Nome aprovado => APRO
 cpf rec => 12345678909 Nome recusado => OTHE
 */
-const cartao = ref({ numero: '5031 4332 1540 6351', nome: 'APRO', validade: '02/33', cvc: '123', cpf: '12345678909' });
+const cartao = ref({ numero: '', nome: '', validade: '', cvc: '', cpf: '' });
 
 const isCreditCardValid = computed(() => {
     const { numero, nome, validade, cvc, cpf } = cartao.value;
@@ -746,7 +746,7 @@ const handlePagar = async () => {
                                 <button
                                     type="button"
                                     :class="[
-                                        'checkout-option-button px-4 py-2 rounded-lg border text-sm font-medium flex items-center gap-2 transition',
+                                        'checkout-option-button px-4 py-2 rounded-lg border text-sm font-medium flex items-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed',
                                         entrega === 'casa' ? 'border-it-primary text-it-primary bg-blue-50' : 'border-gray-200 text-gray-700 hover:border-it-primary'
                                     ]"
                                     @click="entrega = 'casa'"
@@ -1010,6 +1010,8 @@ const handlePagar = async () => {
                                         'checkout-option-button px-4 py-2 rounded-lg border text-sm font-medium flex items-center gap-2 transition',
                                         paymentMethod === 'credito' ? 'border-it-primary text-it-primary bg-blue-50' : 'border-gray-200 text-gray-700 hover:border-it-primary'
                                     ]"
+                                    :disabled="!config.public.mercadoPagoPublicKey"
+                                    :title="!config.public.mercadoPagoPublicKey ? 'Pagamento por cartão indisponível no momento.' : undefined"
                                     @click="paymentMethod = 'credito'; pixData = null"
                                 >
                                     <i class="pi pi-credit-card"></i>
