@@ -135,7 +135,7 @@ onMounted(() => {
 
 const frete = ref(0.00);
 const subtotalKits = computed(() =>
-    selectedVehicles.value.reduce((sum, v) => sum + parseFloat(v.tag_price) * getQty(v.id), 0)
+    selectedVehicles.value.reduce((sum, v) => sum + 29.90 * getQty(v.id), 0)
 );
 const total = computed(() => subtotalKits.value + frete.value);
 
@@ -200,7 +200,7 @@ const fetchPickupPoints = async () => {
         const data = response?.data || response;
         const list = Array.isArray(data) ? data : data?.data || [];
 
-        pontosColetaOptions.value = (list as PointOfSaleApiItem[]).map((point) => ({
+        pontosColetaOptions.value = (list as PointOfSaleApiItem[]).filter((point: any) => point.active !== false && point.active !== 0).map((point) => ({
             label: point.name,
             value: point.id,
             endereco: point.address || '',
@@ -239,7 +239,7 @@ const phoneSelecionado = computed(() => {
 cpf apro => 12345678909 Nome aprovado => APRO
 cpf rec => 12345678909 Nome recusado => OTHE
 */
-const cartao = ref({ numero: '5031 4332 1540 6351', nome: 'APRO', validade: '02/33', cvc: '123', cpf: '12345678909' });
+const cartao = ref({ numero: '', nome: '', validade: '', cvc: '', cpf: '' });
 
 const isCreditCardValid = computed(() => {
     const { numero, nome, validade, cvc, cpf } = cartao.value;
@@ -322,7 +322,7 @@ const isDeliveryValid = computed(() => {
         const { cep, rua, numero, bairro, cidade, estado } = endereco.value;
         return !![cep, rua, numero, bairro, cidade, estado].every(v => v?.trim());
     }
-    return !!pontoColeta.value;
+    return pontosColetaOptions.value.length > 0;
 });
 
 const isBoletoValid = computed(() => {
@@ -492,7 +492,7 @@ const buildDeliveryPayload = () => {
         };
     }
 
-    const ponto = pontosColetaOptions.value.find(p => p.value === pontoColeta.value);
+    const ponto = pontosColetaOptions.value.find(p => p.value === pontoColeta.value) || pontosColetaOptions.value[0];
     return {
         is_delivery: false,
         pickup_point: {
@@ -746,7 +746,7 @@ const handlePagar = async () => {
                                 <button
                                     type="button"
                                     :class="[
-                                        'checkout-option-button px-4 py-2 rounded-lg border text-sm font-medium flex items-center gap-2 transition',
+                                        'checkout-option-button px-4 py-2 rounded-lg border text-sm font-medium flex items-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed',
                                         entrega === 'casa' ? 'border-it-primary text-it-primary bg-blue-50' : 'border-gray-200 text-gray-700 hover:border-it-primary'
                                     ]"
                                     @click="entrega = 'casa'"
@@ -811,7 +811,7 @@ const handlePagar = async () => {
 
                                     <div v-else-if="entrega === 'ponto'" class="space-y-4 p-8 bg-gray-50 border border-gray-200 rounded-lg">
                                         <h3 class="text-lg! font-semibold text-gray-900 mb-4">Pontos de Coleta</h3>
-                                        <SelectInput v-model="pontoColeta" label="Selecione um Ponto de Coleta" :options="pontosColetaOptions" placeholder="Escolha um local" icon="pi pi-map-marker" wrapper-class="w-full" inputClass="w-full" />
+                                        <SelectInput v-model="pontoColeta" label="Ponto de preferência (opcional)" :options="pontosColetaOptions" placeholder="Você pode retirar em qualquer ponto autorizado" icon="pi pi-map-marker" wrapper-class="w-full" inputClass="w-full" />
                                         <div v-if="enderecoSelecionado" class="bg-green-50 border border-green-200 rounded-lg px-4 py-3 mt-4">
                                             <p v-if="responsavelSelecionado" class="text-sm text-gray-700"><span class="font-semibold">Responsável:</span> {{ responsavelSelecionado }}</p>
                                             <p v-if="phoneSelecionado" class="text-sm text-gray-700"><span class="font-semibold">Telefone:</span> {{ phoneSelecionado }}</p>
@@ -830,7 +830,7 @@ const handlePagar = async () => {
                                         </div>
                                         <p v-else class="text-sm text-gray-600 mt-3">Selecione um ponto para ver o endereço.</p>
                                         <div class="bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 mt-4">
-                                            <p class="text-sm text-gray-700"><span class="font-semibold">Instruções:</span> Leve um documento de identificação e o número da etiqueta para retirada.</p>
+                                            <p class="text-sm text-gray-700"><span class="font-semibold">Instruções:</span> Apresente o QR de retirada disponível em Meus pedidos. Qualquer ponto autorizado pode conferir o pagamento e registrar sua entrega. Consulte a disponibilidade do kit antes de ir.</p>
                                         </div>
                                     </div>
                                 </div>
@@ -901,7 +901,7 @@ const handlePagar = async () => {
                                                 >
                                                     <i class="pi pi-times text-sm"></i>
                                                 </button>
-                                                <span class="font-semibold whitespace-nowrap">R$ {{ (parseFloat(vehicle.tag_price) * getQty(vehicle.id)).toFixed(2) }}</span>
+                                                <span class="font-semibold whitespace-nowrap">R$ {{ (29.90 * getQty(vehicle.id)).toFixed(2) }}</span>
                                                 <p>{{ getQty(vehicle.id) }} unidade{{ getQty(vehicle.id) > 1 ? 's' : '' }}</p>
                                             </div>
                                         </div>
@@ -1010,6 +1010,8 @@ const handlePagar = async () => {
                                         'checkout-option-button px-4 py-2 rounded-lg border text-sm font-medium flex items-center gap-2 transition',
                                         paymentMethod === 'credito' ? 'border-it-primary text-it-primary bg-blue-50' : 'border-gray-200 text-gray-700 hover:border-it-primary'
                                     ]"
+                                    :disabled="!config.public.mercadoPagoPublicKey"
+                                    :title="!config.public.mercadoPagoPublicKey ? 'Pagamento por cartão indisponível no momento.' : undefined"
                                     @click="paymentMethod = 'credito'; pixData = null"
                                 >
                                     <i class="pi pi-credit-card"></i>

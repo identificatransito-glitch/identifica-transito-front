@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import PdvAddressFields from '~/components/forms/PdvAddressFields.vue';
 import HeroSection from '~/components/dashboard/HeroSection.vue';
 import FormInputText from '~/components/forms/InputText.vue';
 import Button from '~/components/forms/Button.vue';
@@ -14,6 +15,8 @@ const route = useRoute();
 const pickupPointId = Number(route.params.id);
 
 const loading = ref(false);
+const addressBusy = ref(false);
+const addressValid = ref(true);
 const loadingPoint = ref(false);
 
 const form = ref({
@@ -50,6 +53,10 @@ const fetchPickupPoint = async () => {
 onMounted(() => fetchPickupPoint());
 
 const handleSubmit = async () => {
+    if (addressBusy.value || !addressValid.value) {
+        toast.add({ severity: 'warn', summary: 'Confira o endereço', detail: addressBusy.value ? 'Aguarde a consulta do CEP.' : 'Confira o CEP e o tamanho do endereço.', life: 4000 });
+        return;
+    }
     if (!form.value.name) {
         toast.add({ severity: 'error', summary: 'Campos obrigatórios', detail: 'Preencha o nome do ponto de venda.', life: 3000 });
         return;
@@ -140,17 +147,7 @@ const handleSubmit = async () => {
                             />
                         </div>
 
-                        <FormInputText
-                            v-model="form.address"
-                            id="address"
-                            label="Endereço"
-                            placeholder="Ex: Avenida Martins de Sá"
-                            showIcon
-                            icon="pi pi-map-marker"
-                            wrapper-class="w-full"
-                            inputClass="w-full"
-                            :disabled="loading"
-                        />
+                        <PdvAddressFields v-model="form.address" :disabled="loading" @busy="addressBusy = $event" @validity="addressValid = $event" />
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <FormInputText
@@ -206,7 +203,7 @@ const handleSubmit = async () => {
                         </div>
                     </div>
 
-                    <Button type="submit" fullWidth :loading="loading" size="lg">
+                    <Button type="submit" fullWidth :loading="loading" :disabled="addressBusy || !addressValid" size="lg">
                         <i v-if="!loading" class="pi pi-check"></i>
                         Salvar Alterações
                     </Button>

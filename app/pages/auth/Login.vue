@@ -54,7 +54,8 @@
       auth.setSession(token, user);
 
       const userType = getUserType(user);
-      await navigateTo(getDashboardByType(userType), { external: true });
+      const pendingPickup = import.meta.client && /^[a-f0-9]{64}$/.test(sessionStorage.getItem('it_pickup_pending') || '');
+      await navigateTo(pendingPickup ? '/retirada' : getDashboardByType(userType), { external: true });
     } catch (error) {
       const apiMessage = error?.data?.message || error?.data?.error;
       errorMessage.value = apiMessage || error?.message || 'Nao foi possivel fazer login. Tente novamente.';

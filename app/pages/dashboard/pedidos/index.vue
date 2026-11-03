@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import PickupReceiptButton from '~/components/pickup/PickupReceiptButton.vue';
 import { ref, computed, watch, onBeforeUnmount, onMounted } from 'vue';
 import { Check, CircleAlert, ClipboardList, Clock3, CreditCard, ExternalLink, MapPin, PackageCheck, QrCode, ReceiptText, Search, ShoppingBag, SlidersHorizontal, Truck, X } from '@lucide/vue';
 import HeroSection from '~/components/dashboard/HeroSection.vue';
@@ -1188,7 +1189,8 @@ const getPaymentIcon = (type: string | undefined) => {
                     <aside class="rounded-xl border border-slate-200 bg-[#fafafa] p-4">
                         <div v-if="group.first.pickup_point" class="mb-4">
                             <p class="mb-2 flex items-center gap-1.5 text-sm font-semibold text-[#172b4d]"><MapPin :size="15" :stroke-width="1.9" aria-hidden="true" /> Retirada</p>
-                            <p class="text-sm text-slate-600 mb-1">{{ group.first.pickup_point.name }}</p>
+                            <p class="text-sm text-slate-600 mb-1">Qualquer ponto autorizado</p>
+                            <div v-for="item in group.items" :key="`pickup-${item.id}`" class="mt-3"><PickupReceiptButton v-if="item.pickup_point" :order-id="item.id" :quantity="item.qty" /></div>
                             <p v-if="group.first.pickup_point.address" class="text-sm text-slate-500 mb-0!">{{ group.first.pickup_point.address }}</p>
                         </div>
                         <div v-else-if="group.first.shipment" class="mb-4">
