@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import PdvCommissionField from '~/components/forms/PdvCommissionField.vue';
+import { pdvCommissionError } from '~/utils/pdvCommission';
 import PdvAddressFields from '~/components/forms/PdvAddressFields.vue';
 import HeroSection from '~/components/dashboard/HeroSection.vue';
 import FormInputText from '~/components/forms/InputText.vue';
@@ -27,6 +29,7 @@ const form = ref({
     responsible: '',
     map_link: '',
     active: true,
+    commission_percentage: '',
 });
 
 const fetchPickupPoint = async () => {
@@ -42,6 +45,7 @@ const fetchPickupPoint = async () => {
         form.value.responsible = point?.responsible ?? '';
         form.value.map_link = point?.map_link ?? '';
         form.value.active = Boolean(point?.active);
+        form.value.commission_percentage = point?.commission_percentage == null ? '' : String(point.commission_percentage);
     } catch (e) {
         toast.add({ severity: 'error', summary: 'Erro', detail: 'Não foi possível carregar os dados do ponto de venda.', life: 5000 });
         navigateTo('/dashboard/superadmin/pontos-de-venda');
@@ -62,6 +66,11 @@ const handleSubmit = async () => {
         return;
     }
 
+    const commissionError = pdvCommissionError(form.value.commission_percentage);
+    if (commissionError) {
+        toast.add({ severity: 'warn', summary: 'Confira o repasse', detail: commissionError, life: 4000 });
+        return;
+    }
     loading.value = true;
     try {
         await $api(`/admin/pickup-points/${pickupPointId}`, {
@@ -74,6 +83,7 @@ const handleSubmit = async () => {
                 responsible: form.value.responsible || null,
                 map_link: form.value.map_link || null,
                 active: form.value.active,
+                commission_percentage: form.value.commission_percentage.trim() === '' ? null : Number(form.value.commission_percentage),
             },
         });
         toast.add({ severity: 'success', summary: 'Ponto atualizado!', detail: 'Os dados foram salvos com sucesso.', life: 3000 });
@@ -118,6 +128,7 @@ const handleSubmit = async () => {
                 </div>
 
                 <form @submit.prevent="handleSubmit" class="admin-user-form-grid space-y-8">
+                    <PdvCommissionField v-model="form.commission_percentage" :disabled="loading" />
                     <div class="space-y-5">
                         <h2 class="flex items-center gap-3 text-lg! font-semibold text-gray-900 border-b border-gray-100 pb-3"><span class="flex h-9 w-9 items-center justify-center rounded-xl bg-[#eef2ff] text-[#1f46ee]"><i class="pi pi-shop"></i></span>Informações do Ponto</h2>
 

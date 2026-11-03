@@ -1,8 +1,9 @@
 <script setup lang="ts">
+import { formatPdvCommission } from '~/utils/pdvCommission';
 import Dialog from 'primevue/dialog';
 import { CalendarDays, DollarSign, MapPin, Pencil, Store, Tag, Trash2, X } from '@lucide/vue';
 
-type Point = { id: number; name: string; cnpj: string | null; address: string | null; phone: string | null; responsible: string | null; created_at: string };
+type Point = { commission_percentage?: string | number | null; id: number; name: string; cnpj: string | null; address: string | null; phone: string | null; responsible: string | null; created_at: string };
 type Performance = { total_sales_qty?: number; total_sales_amount?: number; commission_amount?: number };
 const props = defineProps<{ visible: boolean; point: Point | null; performance?: Performance; loading?: boolean }>();
 const emit = defineEmits<{ 'update:visible': [value: boolean]; delete: [point: Point] }>();
@@ -32,6 +33,7 @@ const cnpj = (value: string | null) => {
                 </section>
 
                 <section class="border-y border-[#e9eef6] py-1">
+                    <div class="grid grid-cols-[7rem_1fr] gap-x-3 border-b border-[#edf1f6] py-3 text-sm"><span class="text-[#7284a5]">Repasse do PDV</span><strong class="text-[#172b4d]">{{ formatPdvCommission(point.commission_percentage) }}</strong></div>
                     <div class="grid grid-cols-[7rem_1fr] gap-x-3 border-b border-[#edf1f6] py-3 text-sm"><span class="text-[#7284a5]">CNPJ</span><strong class="font-mono text-[#172b4d]">{{ cnpj(point.cnpj) }}</strong></div>
                     <div class="grid grid-cols-[7rem_1fr] gap-x-3 border-b border-[#edf1f6] py-3 text-sm"><span class="text-[#7284a5]">Cadastro</span><strong class="text-[#172b4d]">{{ date(point.created_at) }}</strong></div>
                     <div class="grid grid-cols-[7rem_1fr] gap-x-3 border-b border-[#edf1f6] py-3 text-sm"><span class="text-[#7284a5]">Telefone</span><strong class="text-[#172b4d]">{{ point.phone || '-' }}</strong></div>

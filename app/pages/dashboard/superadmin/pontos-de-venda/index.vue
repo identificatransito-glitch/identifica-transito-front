@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { formatPdvCommission } from '~/utils/pdvCommission';
 import PaginationControls from '~/components/PaginationControls.vue';
 import HeroSection from '~/components/dashboard/HeroSection.vue';
 import SelectInput from '~/components/forms/SelectInput.vue';
@@ -17,6 +18,7 @@ const confirm = useConfirm();
 const toast = useToast();
 
 interface PickupPoint {
+    commission_percentage?: string | number | null;
     id: number;
     name: string;
     cnpj: string | null;
@@ -217,6 +219,7 @@ onMounted(() => {
                         <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#eef2ff] text-[#1f46ee]"><Store :size="19" /></span>
                         <span class="min-w-0 flex-1"><strong class="mb-1 block truncate text-[15px] text-[#172b4d]">{{ p.name }}</strong><span class="block truncate text-xs text-[#64748b]">{{ p.address || 'Endereço não informado' }}</span></span><i class="pi pi-external-link mt-1 text-sm text-[#8291a7]" title="Abrir detalhes"></i>
                     </button>
+                    <NuxtLink :to="`/dashboard/superadmin/pontos-de-venda/${p.id}/editar`" class="mx-5 mb-4 flex items-center justify-between rounded-xl bg-[#f3f5ff] px-4 py-3 text-sm text-[#172b4d]"><span>Repasse do PDV <strong class="ml-2">{{ formatPdvCommission(p.commission_percentage) }}</strong></span><span class="font-semibold text-it-primary">Editar <i class="pi pi-pencil ml-1" aria-hidden="true"></i></span></NuxtLink>
                     <dl class="grid grid-cols-3 border-t border-[#edf1f6] px-5 py-5 text-center"><div><dt class="text-[11px] font-bold uppercase tracking-wide text-[#8291a7]">Faturamento</dt><dd class="mt-1.5 text-sm font-bold text-[#172b4d]">{{ formatCurrency(pointPerformance(p.id)?.total_sales_amount) }}</dd></div><div class="border-x border-[#edf1f6]"><dt class="text-[11px] font-bold uppercase tracking-wide text-[#8291a7]">Etiquetas</dt><dd class="mt-1.5 text-sm font-bold text-[#172b4d]">{{ pointPerformance(p.id)?.total_sales_qty ?? 0 }}</dd></div><div><dt class="text-[11px] font-bold uppercase tracking-wide text-[#8291a7]">A repassar</dt><dd class="mt-1.5 text-sm font-bold text-[#172b4d]">{{ formatCurrency(pointPerformance(p.id)?.commission_amount) }}</dd></div></dl>
                     <div v-if="false" class="border-t border-[#edf1f6] bg-[#fbfcfe] px-5 pb-5 pt-4">
                         <div class="mb-4 rounded-xl border border-[#e3eaff] bg-[#f4f7ff] p-3">

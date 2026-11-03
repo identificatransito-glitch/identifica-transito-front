@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import PdvCommissionField from '~/components/forms/PdvCommissionField.vue';
+import { pdvCommissionError } from '~/utils/pdvCommission';
 import InputPassword from '~/components/forms/InputPassword.vue';
 import PasswordStrengthIndicator from '~/components/forms/PasswordStrengthIndicator.vue';
 import PdvAddressFields from '~/components/forms/PdvAddressFields.vue';
@@ -29,6 +31,7 @@ const form = ref({
     responsible: '',
     map_link: '',
     active: true,
+    commission_percentage: '',
 });
 
 const handleSubmit = async () => {
@@ -45,6 +48,11 @@ const handleSubmit = async () => {
         toast.add({ severity: 'warn', summary: 'Confira o acesso do PDV', detail: 'Informe o responsável, o e-mail e uma senha com pelo menos 8 caracteres. A confirmação deve ser igual à senha.', life: 5000 });
         return;
     }
+    const commissionError = pdvCommissionError(form.value.commission_percentage);
+    if (commissionError) {
+        toast.add({ severity: 'warn', summary: 'Confira o repasse', detail: commissionError, life: 4000 });
+        return;
+    }
     loading.value = true;
     try {
         await $api(createAccess.value ? '/admin/pickup-points-with-access' : '/admin/pickup-points', {
@@ -58,6 +66,7 @@ const handleSubmit = async () => {
                 responsible: form.value.responsible || null,
                 map_link: form.value.map_link || null,
                 active: form.value.active,
+                commission_percentage: form.value.commission_percentage.trim() === '' ? null : Number(form.value.commission_percentage),
             },
         });
         accessPassword.value = ''; accessConfirmation.value = '';
@@ -92,6 +101,7 @@ const handleSubmit = async () => {
                 </div>
 
                 <form @submit.prevent="handleSubmit" class="admin-user-form-grid space-y-8">
+                    <PdvCommissionField v-model="form.commission_percentage" :disabled="loading" />
                     <div class="space-y-5">
                         <h2 class="flex items-center gap-3 text-lg! font-semibold text-gray-900 border-b border-gray-100 pb-3"><span class="flex h-9 w-9 items-center justify-center rounded-xl bg-[#eef2ff] text-[#1f46ee]"><i class="pi pi-shop"></i></span>Informações do Ponto</h2>
 
