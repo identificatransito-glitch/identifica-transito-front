@@ -4,6 +4,8 @@ import HeroSection from '~/components/dashboard/HeroSection.vue';
 import Button from '~/components/forms/Button.vue';
 import InputText from '~/components/forms/InputText.vue';
 import SelectInput from '~/components/forms/SelectInput.vue';
+import PickupPointSelector from '~/components/pickup/PickupPointSelector.vue';
+import { type PickupRegion, zipDigits } from '~/utils/pickupPoints';
 import CreditCardPreview from '~/components/dashboard/CreditCardPreview.vue';
 import Stepper from 'primevue/stepper';
 import StepItem from 'primevue/stepitem';
@@ -131,6 +133,7 @@ onMounted(() => {
     }
 
     fetchPickupPoints();
+    fetchSavedPickupAddress();
 });
 
 const frete = ref(0.00);
@@ -184,6 +187,8 @@ const removeCoupon = () => {
 };
 
 // Opções de pagamento
+// Temporarily hidden; keep the card integration for future reactivation.
+const CREDIT_CARD_ENABLED = false;
 const paymentMethod = ref<'credito' | 'pix' | 'boleto'>('pix');
 
 // Opção de entrega
@@ -192,15 +197,32 @@ const entrega = ref<'casa' | 'ponto'>('casa');
 // Dados de coleta em ponto
 const pontoColeta = ref<number | null>(null);
 const pontosColetaOptions = ref<PickupPointOption[]>([]);
+const pickupLoading = ref(false), pickupError = ref(false);
+const savedPickupAddress = ref<PickupRegion | null>(null);
+const pickupPoints = computed(() => pontosColetaOptions.value.map(point => ({id:point.value,name:point.label,address:point.endereco,map_link:point.mapLink,responsible:point.responsible,phone:point.phone})));
+const pickupReference = computed<PickupRegion | null>(() => zipDigits(endereco.value.cep).length===8
+    ? {zip:zipDigits(endereco.value.cep),city:endereco.value.cidade,state:endereco.value.estado,neighborhood:endereco.value.bairro}
+    : savedPickupAddress.value);
+const fetchSavedPickupAddress = async () => {
+    try {
+        const { $api } = useNuxtApp();
+        const response:any = await $api('/orders?perpage=10&page=1');
+        const payload=response?.data?.data ? response.data : response;
+        const orders=Array.isArray(payload)?payload:payload?.data || [];
+        const delivery=orders.find((order:any)=>zipDigits(order.delivery?.zip_code || '').length===8)?.delivery;
+        if (delivery) savedPickupAddress.value={zip:zipDigits(delivery.zip_code),city:delivery.city || '',state:(delivery.state || '').toUpperCase(),neighborhood:delivery.neighborhood || ''};
+    } catch { /* Without a saved address the visitor can enter a reference CEP. */ }
+};
 
 const fetchPickupPoints = async () => {
+    pickupLoading.value=true; pickupError.value=false;
     try {
         const { $api } = useNuxtApp();
         const response = await $api('/points-of-sale?perpage=999') as any;
         const data = response?.data || response;
         const list = Array.isArray(data) ? data : data?.data || [];
 
-        pontosColetaOptions.value = (list as PointOfSaleApiItem[]).filter((point: any) => point.active !== false && point.active !== 0).map((point) => ({
+        pontosColetaOptions.value = (list as PointOfSaleApiItem[]).filter((point: any) => ![false, 0, '0', 'false'].includes(point.active)).map((point) => ({
             label: point.name,
             value: point.id,
             endereco: point.address || '',
@@ -211,28 +233,9 @@ const fetchPickupPoints = async () => {
     } catch (error) {
         console.error('Erro ao carregar pontos de retirada:', error);
         pontosColetaOptions.value = [];
-    }
+        pickupError.value=true;
+    } finally { pickupLoading.value=false; }
 };
-
-const enderecoSelecionado = computed(() => {
-    const ponto = pontosColetaOptions.value.find(p => p.value === pontoColeta.value);
-    return ponto?.endereco || '';
-});
-
-const mapLinkSelecionado = computed(() => {
-    const ponto = pontosColetaOptions.value.find(p => p.value === pontoColeta.value);
-    return ponto?.mapLink || '';
-});
-
-const responsavelSelecionado = computed(() => {
-    const ponto = pontosColetaOptions.value.find(p => p.value === pontoColeta.value);
-    return ponto?.responsible || '';
-});
-
-const phoneSelecionado = computed(() => {
-    const ponto = pontosColetaOptions.value.find(p => p.value === pontoColeta.value);
-    return ponto?.phone || null;
-});
 
 // Dados de cartão de crédito
 /*
@@ -539,6 +542,11 @@ const handlePagar = async () => {
     }
 
     if (paymentMethod.value === 'credito') {
+        if (!CREDIT_CARD_ENABLED) {
+            paymentMethod.value='pix';
+            toast.add({severity:'info',summary:'Escolha Pix ou boleto',detail:'Cartão de crédito indisponível no momento.',life:4000});
+            return;
+        }
         loadingPayment.value = true;
         try {
             const config = useRuntimeConfig();
@@ -809,30 +817,7 @@ const handlePagar = async () => {
                                         </div>
                                     </div>
 
-                                    <div v-else-if="entrega === 'ponto'" class="space-y-4 p-8 bg-gray-50 border border-gray-200 rounded-lg">
-                                        <h3 class="text-lg! font-semibold text-gray-900 mb-4">Pontos de Coleta</h3>
-                                        <SelectInput v-model="pontoColeta" label="Ponto de preferência (opcional)" :options="pontosColetaOptions" placeholder="Você pode retirar em qualquer ponto autorizado" icon="pi pi-map-marker" wrapper-class="w-full" inputClass="w-full" />
-                                        <div v-if="enderecoSelecionado" class="bg-green-50 border border-green-200 rounded-lg px-4 py-3 mt-4">
-                                            <p v-if="responsavelSelecionado" class="text-sm text-gray-700"><span class="font-semibold">Responsável:</span> {{ responsavelSelecionado }}</p>
-                                            <p v-if="phoneSelecionado" class="text-sm text-gray-700"><span class="font-semibold">Telefone:</span> {{ phoneSelecionado }}</p>
-                                            <p class="text-sm text-gray-700"><span class="font-semibold">Endereço:</span> {{ enderecoSelecionado }}</p>
-                                            <a
-                                                v-if="mapLinkSelecionado"
-                                                :href="mapLinkSelecionado"
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                class="inline-flex items-center gap-2 mt-2 text-xs font-medium text-it-primary hover:underline"
-                                            >
-                                                <i class="pi pi-map"></i>
-                                                Ver no mapa
-                                            </a>
-
-                                        </div>
-                                        <p v-else class="text-sm text-gray-600 mt-3">Selecione um ponto para ver o endereço.</p>
-                                        <div class="bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 mt-4">
-                                            <p class="text-sm text-gray-700"><span class="font-semibold">Instruções:</span> Apresente o QR de retirada disponível em Meus pedidos. Qualquer ponto autorizado pode conferir o pagamento e registrar sua entrega. Consulte a disponibilidade do kit antes de ir.</p>
-                                        </div>
-                                    </div>
+                                    <PickupPointSelector v-else-if="entrega === 'ponto'" v-model="pontoColeta" :points="pickupPoints" :reference-address="pickupReference" :loading="pickupLoading" :error="pickupError" @retry="fetchPickupPoints" />
                                 </div>
 
                                 <div class="checkout-delivery-visual lg:col-span-2 hidden md:block">
@@ -1005,6 +990,7 @@ const handlePagar = async () => {
 
                             <div v-else class="flex flex-wrap gap-3">
                                 <button
+                                    v-if="CREDIT_CARD_ENABLED"
                                     type="button"
                                     :class="[
                                         'checkout-option-button px-4 py-2 rounded-lg border text-sm font-medium flex items-center gap-2 transition',
@@ -1042,7 +1028,7 @@ const handlePagar = async () => {
                             </div>
 
                             <!-- Cartão de Crédito -->
-                            <div v-if="!isFree && paymentMethod === 'credito'" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div v-if="CREDIT_CARD_ENABLED && !isFree && paymentMethod === 'credito'" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                 <div class="space-y-4 bg-gray-50 border border-gray-200 rounded-xl p-4">
                                     <p class="text-sm font-semibold text-gray-800">Dados do cartão:</p>
                                     <div class="grid grid-cols-1 gap-4">
