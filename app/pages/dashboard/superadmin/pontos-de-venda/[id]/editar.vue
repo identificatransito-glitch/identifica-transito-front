@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import PdvAccessFields from '~/components/forms/PdvAccessFields.vue';
 import PdvCommissionField from '~/components/forms/PdvCommissionField.vue';
 import { pdvCommissionError } from '~/utils/pdvCommission';
 import PdvAddressFields from '~/components/forms/PdvAddressFields.vue';
@@ -20,6 +21,10 @@ const loading = ref(false);
 const addressBusy = ref(false);
 const addressValid = ref(true);
 const loadingPoint = ref(false);
+const accessEmail=ref('');
+const accessPassword=ref('');
+const accessConfirmation=ref('');
+const accessConfigured=ref(false);
 
 const form = ref({
     name: '',
@@ -38,6 +43,8 @@ const fetchPickupPoint = async () => {
         const res = await $api(`/admin/pickup-points/${pickupPointId}`) as any;
         const point = res?.data ?? res;
 
+        accessConfigured.value=Boolean(point?.access?.configured);
+        accessEmail.value=point?.access?.email ?? '';
         form.value.name = point?.name ?? '';
         form.value.cnpj = point?.cnpj ?? '';
         form.value.address = point?.address ?? '';
@@ -66,6 +73,10 @@ const handleSubmit = async () => {
         return;
     }
 
+    if (!accessEmail.value.trim() || !form.value.responsible.trim() || (!accessConfigured.value && accessPassword.value.length < 8) || ((accessPassword.value || accessConfirmation.value) && (accessPassword.value.length < 8 || accessPassword.value !== accessConfirmation.value))) {
+        toast.add({ severity: 'warn', summary: 'Confira o acesso do PDV', detail: 'Informe responsável e e-mail. Para criar ou trocar a senha, use pelo menos 8 caracteres e confirme a mesma senha.', life: 5000 });
+        return;
+    }
     const commissionError = pdvCommissionError(form.value.commission_percentage);
     if (commissionError) {
         toast.add({ severity: 'warn', summary: 'Confira o repasse', detail: commissionError, life: 4000 });
@@ -76,6 +87,8 @@ const handleSubmit = async () => {
         await $api(`/admin/pickup-points/${pickupPointId}`, {
             method: 'PUT',
             body: {
+                access_email: accessEmail.value.trim().toLowerCase(),
+                ...(accessPassword.value ? { password: accessPassword.value, password_confirmation: accessConfirmation.value } : {}),
                 name: form.value.name,
                 cnpj: form.value.cnpj || null,
                 address: form.value.address || null,
@@ -86,6 +99,7 @@ const handleSubmit = async () => {
                 commission_percentage: form.value.commission_percentage.trim() === '' ? null : Number(form.value.commission_percentage),
             },
         });
+        accessPassword.value=''; accessConfirmation.value='';
         toast.add({ severity: 'success', summary: 'Ponto atualizado!', detail: 'Os dados foram salvos com sucesso.', life: 3000 });
         navigateTo('/dashboard/superadmin/pontos-de-venda');
     } catch (error: any) {
@@ -128,6 +142,7 @@ const handleSubmit = async () => {
                 </div>
 
                 <form @submit.prevent="handleSubmit" class="admin-user-form-grid space-y-8">
+                    <PdvAccessFields v-model:email="accessEmail" v-model:password="accessPassword" v-model:confirmation="accessConfirmation" :configured="accessConfigured" editing :disabled="loading" />
                     <PdvCommissionField v-model="form.commission_percentage" :disabled="loading" />
                     <div class="space-y-5">
                         <h2 class="flex items-center gap-3 text-lg! font-semibold text-gray-900 border-b border-gray-100 pb-3"><span class="flex h-9 w-9 items-center justify-center rounded-xl bg-[#eef2ff] text-[#1f46ee]"><i class="pi pi-shop"></i></span>Informações do Ponto</h2>
@@ -176,7 +191,7 @@ const handleSubmit = async () => {
                             <FormInputText
                                 v-model="form.responsible"
                                 id="responsible"
-                                label="Responsável"
+                                label="Responsável *"
                                 placeholder="Ex: Frentista Rubens"
                                 showIcon
                                 icon="pi pi-user"

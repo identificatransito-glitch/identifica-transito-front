@@ -23,41 +23,18 @@ const form = ref({
     birth_date: '',
     phone: '',
     gender: '',
-    type: null as number | null,
-    pdv_id: null as number | null,
+    type: 3,
 });
 
-const TIPOS_USUARIO = [
-    { label: 'Cliente', value: 3 },
-    { label: 'Admin', value: 2 },
-];
 
 
-const pointsOfSale = ref<Array<{ label: string; value: number }>>([]);
-const loadingPdv = ref(false);
 
-const fetchPointsOfSale = async () => {
-    loadingPdv.value = true;
-    try {
-        const res = await $api('/points-of-sale') as any;
-        const data = res?.data ?? res;
-        pointsOfSale.value = (Array.isArray(data) ? data : []).map((p: any) => ({
-            label: p.name,
-            value: p.id,
-        }));
-    } catch (e) {
-        console.error('Erro ao carregar pontos de venda:', e);
-    } finally {
-        loadingPdv.value = false;
-    }
-};
 
-onMounted(() => fetchPointsOfSale());
 
 
 const handleSubmit = async () => {
     if (!form.value.name || !form.value.email || !form.value.password || !form.value.gender || !form.value.type) {
-        toast.add({ severity: 'error', summary: 'Campos obrigatórios', detail: 'Preencha nome, e-mail, senha, sexo biológico e tipo.', life: 3000 });
+        toast.add({ severity: 'error', summary: 'Campos obrigatórios', detail: 'Preencha nome, e-mail, senha e sexo biológico.', life: 3000 });
         return;
     }
 
@@ -73,7 +50,6 @@ const handleSubmit = async () => {
             birth_date: form.value.birth_date || null,
             phone: form.value.phone || null,
             gender: form.value.gender || null,
-            pdv_id: form.value.pdv_id || null,
         };
 
 
@@ -108,6 +84,7 @@ const handleSubmit = async () => {
                     <p class="text-gray-600">Preencha as informações para criar um novo usuário na plataforma.</p>
                 </div>
 
+                <p class="mb-6 rounded-xl bg-[#f3f5ff] p-4 text-sm text-[#52667f]">Esta área é para clientes. Os acessos de administrador são criados e gerenciados em <NuxtLink to="/dashboard/superadmin/pontos-de-venda" class="font-semibold text-it-primary underline">Pontos de Venda</NuxtLink>.</p>
                 <form @submit.prevent="handleSubmit" class="space-y-8">
                     <!-- Dados Pessoais -->
                     <div class="space-y-5">
@@ -219,48 +196,9 @@ const handleSubmit = async () => {
                                 />
                                 <PasswordStrengthIndicator :password="form.password" />
                             </div>
-                            <SelectInput
-                                v-model="form.type"
-                                id="type"
-                                label="Tipo de Usuário"
-                                required
-                                :options="TIPOS_USUARIO"
-                                placeholder="Selecione o tipo"
-                                optionLabel="label"
-                                optionValue="value"
-                                icon="pi pi-shield"
-                                wrapperClass="w-full"
-                                :disabled="loading"
-                            />
                         </div>
                     </div>
 
-                    <template v-if="form.type === 2">
-                    <div class="border-t border-gray-200"></div>
-
-                    <!-- Ponto de Venda -->
-                    <div class="space-y-5">
-                        <h2 class="text-lg! font-semibold text-gray-900 border-b border-gray-100 pb-3">Ponto de Venda / Coleta</h2>
-                        <p class="text-sm text-gray-500 -mt-2">Opcional. Vincule este usuário a um ponto de venda.</p>
-
-                        <SelectInput
-                            v-model="form.pdv_id"
-                            id="pdv_id"
-                            label="Ponto de Venda"
-                            :options="pointsOfSale"
-                            placeholder="Selecione o ponto de venda (opcional)"
-                            optionLabel="label"
-                            optionValue="value"
-                            icon="pi pi-shop"
-                            wrapperClass="w-full"
-                            :showClear="true"
-                            :filter="true"
-                            filterPlaceholder="Buscar ponto de venda..."
-                            :disabled="loading || loadingPdv"
-                        />
-                        <p class="rounded-xl bg-[#f3f5ff] p-4 text-sm text-[#52667f]">O percentual de repasse é configurado uma única vez no PDV, e vale para todos os administradores vinculados. <NuxtLink :to="form.pdv_id ? `/dashboard/superadmin/pontos-de-venda/${form.pdv_id}/editar` : '/dashboard/superadmin/pontos-de-venda'" class="font-semibold text-it-primary underline">Configurar repasse no PDV</NuxtLink></p>
-                    </div>
-                    </template>
 
                     <div class="border-t border-gray-200"></div>
 

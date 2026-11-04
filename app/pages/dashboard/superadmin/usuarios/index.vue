@@ -5,7 +5,7 @@ import { useToast } from 'primevue/usetoast';
 import HeroSection from '~/components/dashboard/HeroSection.vue';
 import StatsCard from '~/components/dashboard/StatsCard.vue';
 import PaginationControls from '~/components/PaginationControls.vue';
-import { Store, UserMinus, UsersRound } from '@lucide/vue';
+import { UserMinus, UsersRound } from '@lucide/vue';
 
 definePageMeta({ layout: 'dashboard' });
 
@@ -36,7 +36,7 @@ interface User {
 
 // Stats
 const loadingStats = ref(false);
-const userStats = ref({ active: 0, pdv_pdc: 0, deleted: 0 });
+const userStats = ref({ active: 0, deleted: 0 });
 
 const fetchUserStats = async () => {
     loadingStats.value = true;
@@ -44,7 +44,6 @@ const fetchUserStats = async () => {
         const res = await $api('/admin/users/totals') as any;
         const data = res?.data ?? res;
         userStats.value.active = data?.active ?? 0;
-        userStats.value.pdv_pdc = data?.pdv ?? 0;
         userStats.value.deleted = data?.deleted ?? 0;
     } catch (e) {
         console.error('Erro ao carregar stats de usuários:', e);
@@ -137,20 +136,14 @@ const handleDelete = (user: User) => {
             buttonIcon="pi pi-plus"
         />
 
+        <p class="rounded-xl border border-[#e1e7f0] bg-white p-4 text-[#52667f]">Aqui você gerencia os clientes. Os administradores dos PDVs ficam em <NuxtLink to="/dashboard/superadmin/pontos-de-venda" class="font-semibold text-it-primary underline">Pontos de Venda</NuxtLink>.</p>
         <!-- Stats Cards -->
-        <section class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+        <section class="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <StatsCard
                 title="Usuários Ativos"
                 :value="userStats.active"
                 :icon="UsersRound"
                 color="blue"
-                :loading="loadingStats"
-            />
-            <StatsCard
-                title="Usuários PdV / PdC"
-                :value="userStats.pdv_pdc"
-                :icon="Store"
-                color="green"
                 :loading="loadingStats"
             />
             <StatsCard
