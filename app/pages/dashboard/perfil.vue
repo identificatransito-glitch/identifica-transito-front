@@ -49,7 +49,7 @@ const userProfile = ref({
 const isEditing = ref(false);
 const isSaving = ref(false);
 
-const isGenderLocked = computed(() => !!userProfile.value.gender);
+
 
 const toast = useToast();
 
@@ -102,7 +102,9 @@ const saveProfile = async () => {
         formData.append('_method', 'PUT');
         formData.append('name', editingData.value.nome);
         formData.append('email', editingData.value.email);
-        const genderToSend = isGenderLocked.value ? userProfile.value.gender : editingData.value.gender;
+        const cpf = editingData.value.cpf.replace(/\D/g, '');
+        if (cpf !== userProfile.value.cpf.replace(/\D/g, '')) formData.append('cpf', cpf);
+        const genderToSend = editingData.value.gender;
         if (genderToSend) {
             formData.append('gender', genderToSend);
         }
@@ -454,20 +456,16 @@ const confirmLogout = async () => {
 
                     <div class="relative">
                         <InputText
-                            v-model="userProfile.cpf"
+                            v-model="editingData.cpf"
                             label="CPF"
+                            mask="999.999.999-99"
                             placeholder="000.000.000-00"
                             icon="pi pi-id-card"
-                            :readonly="true"
+                            :readonly="!isEditing"
                             :disabled="!isEditing"
                             wrapper-class="w-full"
                             inputClass="w-full"
                         />
-                        <div class="absolute top-0 right-0 pt-8 pr-3">
-                            <span class="inline-block bg-gray-100 dark:bg-surface-700 text-gray-600 dark:text-gray-400 px-2 py-1 rounded text-xs font-medium">
-                                <i class="pi pi-lock text-xs mr-1"></i> Protegido
-                            </span>
-                        </div>
                     </div>
                 </div>
 
@@ -494,14 +492,9 @@ const confirmLogout = async () => {
                             placeholder="Selecione"
                             icon="pi pi-user"
                             wrapperClass="w-full"
-                            :disabled="!isEditing || isGenderLocked"
+                            :disabled="!isEditing"
                             required
                         />
-                        <div v-if="isGenderLocked" class="absolute top-0 right-0 pt-8 pr-3">
-                            <span class="inline-block bg-gray-100 dark:bg-surface-700 text-gray-600 dark:text-gray-400 px-2 py-1 rounded text-xs font-medium">
-                                <i class="pi pi-lock text-xs mr-1"></i> Protegido
-                            </span>
-                        </div>
                     </div>
                 </div>
 
