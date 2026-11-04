@@ -1,0 +1,11 @@
+# CPF/sexo editáveis e notificações de placas cadastradas — 04/11/2026
+
+Em Meu Perfil → Editar Perfil, CPF e sexo ficam editáveis, sem o selo Protegido. CPF usa a cópia de edição, é enviado sem pontuação e não modifica o perfil ao cancelar. A API mantém unicidade (inclusive CPF antigo com pontuação) e validação de 11 dígitos, aceita a mudança de sexo M/F e preserva a autorização existente de edição da própria conta.
+
+A criação de notificação normaliza placas convencionais e Mercosul e exige um único veículo cadastrado com proprietário ativo e e-mail válido. Destinatário e remetente são resolvidos pelo servidor: um cliente não pode falsificar outro remetente ou escolher driver_id. Placa inexistente, removida ou ambígua é rejeitada com mensagem de validação, sem criar notificação nem enfileirar e-mail.
+
+A notificação entra no painel do proprietário; o e-mail é enfileirado após commit para o endereço vinculado ao veículo. O job confere novamente o vínculo antes de entregar, interrompendo avisos antigos após transferência/remoção. Envia apenas ao proprietário, sem as cópias administrativas anteriores. Usa o mail_sent_at existente para não repetir o envio de um aviso já entregue; falha no envio não marca como entregue e permite nova tentativa. Usa o remetente SMTP já configurado no projeto, sem alterar credenciais.
+
+35 verificações em SQLite na memória com filas/e-mails simulados e HTTP bloqueado: atualização do CPF e sexo, duplicidade, autorização da conta, resolução da placa, parâmetros falsificados, falta de cadastro, papéis, envio ao destinatário correto, repetição, remoção/transferência do veículo, proprietário excluído e falha/retry do e-mail. Revisão visual da edição e cancelamento com perfil sintético local; nenhuma conta, CPF ou e-mail real foi alterado nos testes.
+
+Publicação: backup privado antes; staging e testes antes de --apply. Instalador confere hashes das fontes anteriores e cria backup privado. Não há migração nova: conferir antes que notifications_drivers.mail_sent_at existe (adicionada na implantação de validade da etiqueta em 02/11). Limpar cache Laravel e executar queue:restart para carregar o job novo. Preservar a homepage institucional e as versões anteriores; frontend com API real e mocks desativados. Não restaurar ou limpar usuários como parte desta alteração.

@@ -177,9 +177,13 @@ const fetchNotifications = async () => {
     loading.value = false;
 };
 
+const isSending = ref(false);
+
 const handleSubmit = async () => {
+    if (isSending.value) return;
     const plate = normalizePlate(form.value.placa);
     if (!plate || !form.value.tipo) return;
+    isSending.value = true;
 
     try {
         const created = await $api('/notifications-drivers', {
@@ -200,12 +204,14 @@ const handleSubmit = async () => {
         toast.add({
             severity: 'success',
             summary: 'Sucesso!',
-            detail: 'Notificação enviada com sucesso.',
+            detail: 'Notificação registrada. O aviso será enviado ao e-mail vinculado à placa.',
             life: 3000
         });
     } catch (error: any) {
-        const msg = error?.data?.message || error?.message || 'Não foi possível enviar a notificação.';
+        const msg = error?.data?.errors?.plate?.[0] || error?.data?.message || error?.message || 'Não foi possível enviar a notificação.';
         toast.add({ severity: 'error', summary: 'Erro ao enviar', detail: msg, life: 5000 });
+    } finally {
+        isSending.value = false;
     }
 };
 
@@ -297,7 +303,7 @@ onMounted(() => {
             <div class="driver-compose-heading mb-6">
                 <span class="driver-heading-icon"><Phone :size="19" :stroke-width="1.9" /></span>
                 <h2 class="text-2xl! font-bold text-gray-900 dark:text-white mb-1!">Nova notificação</h2>
-                <p class="text-gray-600 dark:text-gray-400">Preencha os dados abaixo para gerar uma notificação.</p>
+                <p class="text-gray-600 dark:text-gray-400">Informe uma placa cadastrada. O aviso será enviado ao e-mail do usuário vinculado ao veículo.</p>
             </div>
 
             <form @submit.prevent="handleSubmit" class="space-y-6">
@@ -327,7 +333,7 @@ onMounted(() => {
                 </div>
 
                 <div class="flex justify-end">
-                    <Button type="submit" icon="pi pi-send" label="Enviar notificação" />
+                    <Button type="submit" icon="pi pi-send" label="Enviar notificação" :loading="isSending" :disabled="isSending" />
                 </div>
             </form>
         </section>
