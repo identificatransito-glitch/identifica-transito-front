@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref, watch, nextTick, onMounted, onBeforeUnmount } from 'vue';
 import { pickupPaymentLabel, pickupOrderDate } from '~/utils/pickupOrderInfo';
-const props=defineProps<{order:any;pickup:boolean;point:any;recipient:any;senderName:string;senderAddress:string}>();
-const emit=defineEmits<{fit:[boolean];busy:[boolean]}>();
+const props=defineProps<{order:any;pickup:boolean;point:any;recipient:any;senderName:string;senderAddress:string;fixedFontScale?:number}>();
+const emit=defineEmits<{fit:[boolean];busy:[boolean];scale:[number]}>();
 const label=ref<HTMLElement|null>(null),content=ref<HTMLElement|null>(null),fontScale=ref(1);
 const prettyZip=(value:string)=>{const digits=(value||'').replace(/\D/g,'');return digits.length===8?`${digits.slice(0,5)}-${digits.slice(5)}`:value;};
 let version=0;
@@ -12,7 +12,7 @@ async function fit(){
  emit('busy',true);if(document.fonts)await document.fonts.ready;
  if(run!==version||!content.value)return;
  for(const scale of [1,.96,.92,.88,.84,.8]){
-  if(run!==version)return;fontScale.value=scale;await nextTick();if(run!==version||!content.value)return;
+  if(run!==version)return;fontScale.value=scale;emit('scale',scale);await nextTick();if(run!==version||!content.value)return;
   if(content.value.scrollHeight<=content.value.clientHeight+1&&content.value.scrollWidth<=content.value.clientWidth+1){emit('fit',true);emit('busy',false);return;}
  }
  emit('fit',false);emit('busy',false);
@@ -22,7 +22,7 @@ onMounted(fit);
 onBeforeUnmount(()=>version++);
 </script>
 <template>
- <article ref="label" class="thermal-order-label" :style="{'--thermal-font-scale':fontScale}" :aria-label="pickup?'Identificação de retirada 100 por 150 milímetros':'Endereçamento 100 por 150 milímetros'">
+ <article ref="label" class="thermal-order-label" :style="{'--thermal-font-scale':fixedFontScale ?? fontScale}" :aria-label="pickup?'Identificação de retirada 100 por 150 milímetros':'Endereçamento 100 por 150 milímetros'">
   <div ref="content" class="thermal-label-content">
    <header class="thermal-label-header"><strong>IDENTIFICA TRÂNSITO</strong><span>{{ pickup?'IDENTIFICAÇÃO PARA RETIRADA':'ETIQUETA DE ENDEREÇAMENTO' }}</span><b>Pedido #{{ order.id }}</b></header>
    <template v-if="pickup">

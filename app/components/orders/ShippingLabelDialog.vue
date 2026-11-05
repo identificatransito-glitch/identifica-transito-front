@@ -10,7 +10,7 @@ const auth = useAuth(), { $api } = useNuxtApp();
 const senderName = ref('Identifica Trânsito'), senderAddress = ref(''), senderBusy = ref(false), senderValid = ref(true);
 const origin = ref(''), points = ref<any[]>([]);
 const recipient = ref({ name: '', street: '', number: '', complement: '', neighborhood: '', city: '', state: '', zip: '' });
-const previewBox=ref<HTMLElement|null>(null),previewScale=ref(.85),labelFits=ref(false),labelFitting=ref(true),printError=ref('');
+const previewBox=ref<HTMLElement|null>(null),previewScale=ref(.85),labelFits=ref(false),labelFitting=ref(true),printError=ref(''),labelFontScale=ref(1);
 let previewObserver:ResizeObserver|undefined;
 const resizePreview=()=>{if(previewBox.value)previewScale.value=Math.min(1,previewBox.value.clientWidth/(100*96/25.4));};
 watch(previewBox, box=>{previewObserver?.disconnect();if(box){previewObserver=new ResizeObserver(resizePreview);previewObserver.observe(box);resizePreview();}});
@@ -71,13 +71,13 @@ onBeforeUnmount(() => { previewObserver?.disconnect();finishPrint(); window.remo
             </template>
             <template v-else><p v-if="pointsLoading" role="status">Carregando informações do ponto…</p><p v-if="pointsError" role="status">Não foi possível carregar todos os dados do ponto. <button type="button" class="shipping-retry" @click="fetchPoints">Tentar novamente</button></p><PickupOrderDetails :order="order" :point="pickupPoint" /></template>
           </div>
-          <div class="shipping-preview"><p class="shipping-preview-caption">ETIQUETA TÉRMICA · 100 × 150 mm</p><div ref="previewBox" class="thermal-preview-box" :style="{height:`${149.8*96/25.4*previewScale}px`}"><div class="thermal-preview-paper" :style="{transform:`scale(${previewScale})`}"><ThermalOrderLabel :order="order" :pickup="isPickup" :point="pickupPoint" :recipient="recipient" :sender-name="senderName" :sender-address="senderAddress" @fit="labelFits=$event" @busy="labelFitting=$event" /></div></div></div>
+          <div class="shipping-preview"><p class="shipping-preview-caption">ETIQUETA TÉRMICA · 100 × 150 mm</p><div ref="previewBox" class="thermal-preview-box" :style="{height:`${149.8*96/25.4*previewScale}px`}"><div class="thermal-preview-paper" :style="{transform:`scale(${previewScale})`}"><ThermalOrderLabel :order="order" :pickup="isPickup" :point="pickupPoint" :recipient="recipient" :sender-name="senderName" :sender-address="senderAddress" @scale="labelFontScale=$event" @fit="labelFits=$event" @busy="labelFitting=$event" /></div></div></div>
         </div>
         <div class="thermal-print-hints"><strong>Impressão térmica 10 × 15 cm</strong><span>Selecione papel 100 × 150 mm, escala 100%, margens sem borda e desative cabeçalhos e rodapés no diálogo da impressora.</span><p v-if="!labelFits && !labelFitting" role="alert">Os dados ultrapassam uma etiqueta. Abrevie os endereços ou complementos antes de imprimir; nenhuma informação será cortada.</p><p v-if="printError" role="alert">{{ printError }}</p></div>
         <footer class="shipping-actions"><p v-if="!ready && !isPickup">Preencha o destinatário e o remetente com CEP para imprimir.</p><button type="button" @click="close">Fechar</button><button type="button" class="shipping-print-button" :disabled="!ready || !labelFits || labelFitting" @click="print"><Printer :size="19" /> {{ isPickup ? 'Imprimir identificação' : 'Imprimir etiqueta' }}</button></footer>
       </section>
     </div>
-    <article v-if="order" id="it-shipping-print"><ThermalOrderLabel :order="order" :pickup="isPickup" :point="pickupPoint" :recipient="recipient" :sender-name="senderName" :sender-address="senderAddress" /></article>
+    <article v-if="order" id="it-shipping-print"><ThermalOrderLabel :fixed-font-scale="labelFontScale" :order="order" :pickup="isPickup" :point="pickupPoint" :recipient="recipient" :sender-name="senderName" :sender-address="senderAddress" /></article>
   </Teleport>
 </template>
 <style>
