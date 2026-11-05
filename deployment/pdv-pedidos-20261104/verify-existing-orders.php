@@ -1,0 +1,4 @@
+<?php
+$root=$argv[1];$stage=$argv[2]??null;require $root.'/vendor/autoload.php';if($stage)require $stage.'/app/Services/AdminPdvService.php';$app=require $root.'/bootstrap/app.php';$app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+$views=0;$included=0;$checked=0;foreach(App\Models\User::query()->where('type',2)->whereNotNull('pdv_id')->get() as $admin){$before=App\Models\TagPurchase::query()->whereHas('user',fn($q)=>$q->where('user_id_admin_pdv',$admin->id))->count();$after=(new App\Services\AdminPdvService)->orders($admin)->total();if($after<$before)throw new RuntimeException('Existing origin order became hidden');$checked++;if($after>$before){$views++;$included+=$after-$before;}}
+echo json_encode(['pdv_accesses_checked'=>$checked,'accesses_with_pickup_orders_included'=>$views,'additional_order_views'=>$included,'read_only'=>true,'no_payment_or_customer_updates'=>true]).PHP_EOL;

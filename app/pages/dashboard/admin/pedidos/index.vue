@@ -98,6 +98,8 @@ const PICKUP_STATUS = [
     { label: 'Retirado', value: 4 },
 ];
 
+const editablePickupStatus = computed(() => isSuperAdminView.value ? PICKUP_STATUS : PICKUP_STATUS.filter(option => option.value !== 4));
+
 const PAYMENT_METHOD_LABEL: Record<string, string> = {
     credit_card: 'Cartão',
     boleto: 'Boleto',
@@ -235,6 +237,10 @@ const savingShipment = ref(false);
 const isPickup = (order: Order) => order.pickup_point !== null;
 
 const openShipmentEdit = (order: Order) => {
+    if (isPickup(order) && !isSuperAdminView.value && order.shipment?.status === 4) {
+        toast.add({severity:'info',summary:'Retirada confirmada',detail:'A entrega já foi registrada pelo QR. Este registro não pode ser reaberto por esta ação.',life:5000});
+        return;
+    }
     if (isPickup(order)) {
         editingShipmentId.value = order.id;
         editShipmentStatusInline.value = order.shipment?.status ?? 0;
@@ -416,7 +422,7 @@ onMounted(() => fetchOrders());
                                         v-model="editShipmentStatusInline"
                                         class="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-xs focus:outline-none"
                                     >
-                                        <option v-for="opt in PICKUP_STATUS" :key="opt.value" :value="opt.value">
+                                        <option v-for="opt in editablePickupStatus" :key="opt.value" :value="opt.value">
                                             {{ opt.label }}
                                         </option>
                                     </select>
@@ -523,7 +529,7 @@ onMounted(() => fetchOrders());
                             </dd>
                             <div v-else class="mt-1 flex gap-1.5">
                                 <select v-model="editShipmentStatusInline" class="min-w-0 flex-1 rounded-lg border border-gray-300 px-2 py-1 text-xs">
-                                    <option v-for="opt in PICKUP_STATUS" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+                                    <option v-for="opt in editablePickupStatus" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
                                 </select>
                                 <button @click="saveShipmentInline(order)" :disabled="savingShipmentInline" class="rounded-lg bg-it-primary px-2 text-xs text-white"><i class="pi pi-check"></i></button>
                             </div>
