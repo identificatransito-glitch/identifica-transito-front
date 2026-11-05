@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { pdvSaveError } from '~/utils/pdvSaveError';
 import PdvAccessFields from '~/components/forms/PdvAccessFields.vue';
 import PdvCommissionField from '~/components/forms/PdvCommissionField.vue';
 import { pdvCommissionError } from '~/utils/pdvCommission';
@@ -103,7 +104,7 @@ const handleSubmit = async () => {
         toast.add({ severity: 'success', summary: 'Ponto atualizado!', detail: 'Os dados foram salvos com sucesso.', life: 3000 });
         navigateTo('/dashboard/superadmin/pontos-de-venda');
     } catch (error: any) {
-        const msg = error?.data?.message || error?.data?.error || 'Não foi possível salvar as alterações.';
+        const msg = pdvSaveError(error);
         toast.add({ severity: 'error', summary: 'Erro ao salvar', detail: msg, life: 5000 });
     } finally {
         loading.value = false;
