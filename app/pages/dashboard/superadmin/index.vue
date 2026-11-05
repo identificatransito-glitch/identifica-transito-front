@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { recentOrderCard } from '~/utils/recentOrderCard';
 import HeroSection from '~/components/dashboard/HeroSection.vue';
 import StatsCard from '~/components/dashboard/StatsCard.vue';
 import RecentOrdersPanel from '~/components/dashboard/RecentOrdersPanel.vue';
@@ -54,6 +55,11 @@ interface LatestOrder {
     status: number;
     created_at: string;
     tag_name?: string | null;
+    tag?: { name?: string } | null;
+    delivery?: Record<string,unknown> | null;
+    pickup_point?: { id?: number; name?: string; label?: string } | null;
+    shipping_price?: string | number;
+    mp_payment_status_detail?: string;
     tag_slug?: string | null;
     shipment?: { status?: number | string | null } | null;
     vehicle: {
@@ -94,24 +100,7 @@ const latestUsers = computed(() => dashboardData.value?.latest_users ?? []);
 const latestOrders = computed(() => dashboardData.value?.latest_orders ?? []);
 const tagSales = computed(() => dashboardData.value?.tag_sales ?? []);
 const balanceHistory = computed(() => dashboardData.value?.balance_history ?? []);
-const recentOrderCards = computed(() => latestOrders.value.slice(0, 4).map((order) => {
-    const paymentStatus = String(order.mp_payment_status ?? '').toLowerCase();
-    const shipmentStatus = String(order.shipment?.status ?? '').toLowerCase();
-    const status: 'em-andamento' | 'em-rota' | 'entregue' | 'cancelado' =
-        ['4', 'entregue', 'delivered'].includes(shipmentStatus)
-            ? 'entregue'
-            : ['5', '6', 'failed', 'returned', 'devolvido'].includes(shipmentStatus) || ['cancelled', 'cancelado', 'rejected', 'rejeitado'].includes(paymentStatus)
-                ? 'cancelado'
-                : ['2', '3', 'in_transit', 'out_for_delivery', 'em trânsito', 'em transito'].includes(shipmentStatus)
-                    ? 'em-rota'
-                    : 'em-andamento';
-
-    return {
-        id: `#PED-${order.mp_payment_id || order.id}`,
-        title: `${order.tag_name || order.vehicle?.name || `Pedido ${order.id}`} - ${order.qty} ${order.qty === 1 ? 'unidade' : 'unidades'}`,
-        status
-    };
-}));
+const recentOrderCards = computed(() => latestOrders.value.slice(0, 4).map(recentOrderCard));
 
 const fetchDashboard = async () => {
     loading.value = true;
