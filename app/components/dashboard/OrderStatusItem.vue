@@ -4,6 +4,9 @@ import { CheckCircle2, Package, Truck, XCircle } from '@lucide/vue';
 const props = defineProps({
     orderId: { type: String, required: true },
     title: { type: String, required: true },
+    statusLabel: { type: String, default: '' },
+    paymentLabel: { type: String, default: '' },
+    fulfillmentLabel: { type: String, default: '' },
     status: { type: String, required: true, validator: (value) => ['em-andamento', 'em-rota', 'entregue', 'cancelado'].includes(value) }
 });
 
@@ -42,7 +45,7 @@ const statusConfig = {
     }
 };
 
-const currentStatus = statusConfig[props.status];
+const currentStatus = computed(() => statusConfig[props.status] || statusConfig['em-andamento']);
 </script>
 
 <template>
@@ -54,11 +57,13 @@ const currentStatus = statusConfig[props.status];
             <div class="min-w-0 flex-1">
                 <div class="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
                     <div class="min-w-0">
-                        <p class="truncate text-sm font-semibold text-[#0c0f1a]">{{ props.title }}</p>
-                        <p class="mt-0.5 text-xs text-gray-600">Pedido {{ props.orderId }}</p>
+                        <p class="text-sm font-semibold text-[#0c0f1a] break-words">{{ props.title }}</p>
+                        <p class="mt-0.5 text-xs text-gray-600 break-words">Pedido {{ props.orderId }}</p>
+                        <p v-if="props.fulfillmentLabel" class="mt-2 text-sm font-medium text-[#344b71] break-words">{{ props.fulfillmentLabel }}</p>
+                        <p v-if="props.paymentLabel" class="mt-1 text-xs text-gray-600 break-words">{{ props.paymentLabel }}</p>
                     </div>
                     <span :class="[currentStatus.textColor, currentStatus.bgLight]" class="w-fit shrink-0 rounded-md px-2 py-1 text-xs font-medium whitespace-nowrap">
-                        {{ currentStatus.label }}
+                        {{ props.statusLabel || currentStatus.label }}
                     </span>
                 </div>
             </div>

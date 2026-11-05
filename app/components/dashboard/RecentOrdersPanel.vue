@@ -5,7 +5,7 @@ import OrderStatusItem from './OrderStatusItem.vue';
 type OrderStatus = 'em-andamento' | 'em-rota' | 'entregue' | 'cancelado';
 
 defineProps<{
-    orders: Array<{ id: string; title: string; status: OrderStatus }>;
+    orders: Array<{ id: string; title: string; status: OrderStatus; statusLabel?:string; paymentLabel?:string; fulfillmentLabel?:string }>;
     loading?: boolean;
     viewAllTo: string;
 }>();
@@ -43,6 +43,9 @@ defineProps<{
                 :order-id="order.id"
                 :title="order.title"
                 :status="order.status"
+                :status-label="order.statusLabel"
+                :payment-label="order.paymentLabel"
+                :fulfillment-label="order.fulfillmentLabel"
             />
         </div>
 
