@@ -1,0 +1,11 @@
+import {strict as assert} from 'node:assert';
+import {fileURLToPath,pathToFileURL} from 'node:url';import {resolve,dirname} from 'node:path';import {existsSync} from 'node:fs';
+const here=dirname(fileURLToPath(import.meta.url));const candidate=resolve(here,'../identifica-transito-front-trabalho');const root=process.argv[2]||(existsSync(candidate+'/app')?candidate:resolve(here,'../..'));
+const {pdvSaveError}=await import(pathToFileURL(resolve(root,'app/utils/pdvSaveError.ts')));
+assert.match(pdvSaveError({status:422,data:{errors:{access_email:['Este e-mail já pertence a outra conta.']}}}),/outra conta/);
+assert.match(pdvSaveError({status:422,data:{errors:{password:['A confirmação da senha deve ser igual à senha.']}}}),/confirmação/);
+assert.match(pdvSaveError({status:401}),/sessão expirou/);assert.match(pdvSaveError({status:403}),/Super Admin/);
+assert.ok(!pdvSaveError({status:500,data:{message:'SQLSTATE insert into users secret',errors:{password:['secret']}}}).includes('secret'));
+assert.ok(!pdvSaveError({status:422,data:{errors:{access_email:['SQLSTATE insert into users']}}}).includes('SQLSTATE'));
+assert.match(pdvSaveError({}),/Confira os dados/);assert.match(pdvSaveError({data:{errors:{responsible:'Informe o responsável.'}}}),/responsável/);
+console.log('PASS 8 verificações de mensagens específicas e proteção de detalhes internos.');
