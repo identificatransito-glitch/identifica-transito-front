@@ -7,4 +7,7 @@ Relatórios do Super Admin (início, ranking, lista e detalhe) usam a mesma font
 
 Pedidos existentes são recalculados em consulta, sem regravar clientes, compras ou pagamentos. Nenhum repasse é transferido automaticamente. Sem migrações.
 
-42 testes isolados SQLite em memória, filas/e-mail HTTP falsos. Consulta de leitura MySQL confirmou um pedido aprovado com valor zero e um ponto com venda atribuída. A compra não foi refeita.
+50 testes isolados SQLite em memória, filas/e-mail HTTP falsos. Consulta de leitura MySQL confirmou um pedido aprovado com valor zero e um ponto com venda atribuída. A compra não foi refeita.
+
+Atualização solicitada: Usuários no PDV é somente consulta, com criação/edição/exclusão bloqueadas no serviço da API. Formulários diretos redirecionam à lista e botões ficam restritos ao Super Admin. Veículos removido do menu desktop/mobile e da busca do PDV. Dados existentes preservados; Super Admin e perfil pessoal mantêm gestão própria.
+Build de produção final aprovado; prévia do card real com dados fictícios conferida em desktop e 390px sem overflow.

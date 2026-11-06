@@ -31,7 +31,6 @@ const clientItems = [
 const adminItems = [
     { label: 'Início', to: '/dashboard/admin', icon: House },
     { label: 'Usuários', to: '/dashboard/admin/usuarios', icon: UsersRound },
-    { label: 'Veículos', to: '/dashboard/admin/veiculos', icon: CarFront },
     { label: 'Pedidos', to: '/dashboard/admin/pedidos', icon: List },
     { label: 'Mais', to: '', icon: MoreHorizontal, more: true }
 ];
@@ -59,8 +58,7 @@ const moreItems = computed(() => {
 
     if (role.value === 'admin') {
         return [
-            { label: 'Meu perfil', to: '/dashboard/perfil', icon: CircleUserRound },
-            { label: 'Novo usuário', to: '/dashboard/admin/usuarios/novo', icon: UserPlus }
+            { label: 'Meu perfil', to: '/dashboard/perfil', icon: CircleUserRound }
         ];
     }
 

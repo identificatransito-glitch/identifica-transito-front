@@ -6,7 +6,6 @@ use App\Enums\PdvCommissionTypeEnum;
 use App\Enums\PickupShipmentStatusEnum;
 use App\Enums\UserTypeEnum;
 use App\Enums\VehicleTypeEnum;
-use App\Jobs\CreateDefaultUserSettingsJob;
 use App\Jobs\SendShipmentStatusUpdatedMailJob;
 use App\Models\Shipment;
 use App\Models\TagPurchase;
@@ -14,35 +13,23 @@ use App\Models\User;
 use App\Models\Vehicle;
 use Carbon\Carbon;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
 class AdminPdvService
 {
+    private function consultableUsers(User $adminPdv): \Illuminate\Database\Eloquent\Builder
+    {
+        $orders=(new PdvSalesService)->operationalFor($adminPdv)->select('user_id');
+        return User::query()->where('type', UserTypeEnum::Client->value)->where(function ($q) use ($adminPdv,$orders) {
+            $q->where('user_id_admin_pdv',$adminPdv->id)->orWhereIn('id',$orders);
+        });
+    }
+
     public function userTotals(User $adminPdv): array
     {
-        $active = User::query()
-            ->where('type', UserTypeEnum::Client->value)
-            ->where('user_id_admin_pdv', $adminPdv->id)
-            ->count();
-
-        $pdv = User::query()
-            ->where('type', UserTypeEnum::Client->value)
-            ->where('user_id_admin_pdv', $adminPdv->id)
-            ->whereNotNull('pdv_id')
-            ->count();
-
-        $deleted = User::withTrashed()
-            ->where('type', UserTypeEnum::Client->value)
-            ->where('user_id_admin_pdv', $adminPdv->id)
-            ->whereNotNull('deleted_at')
-            ->count();
-
-        return [
-            'active' => $active,
-            'pdv' => $pdv,
-            'deleted' => $deleted,
-        ];
+        return ['active'=>$this->consultableUsers($adminPdv)->count(),
+            'pdv'=>$this->consultableUsers($adminPdv)->whereNotNull('pdv_id')->count(),
+            'deleted'=>$this->consultableUsers($adminPdv)->withTrashed()->whereNotNull('deleted_at')->count()];
     }
 
     public function vehicleTotals(User $adminPdv): array
@@ -88,20 +75,23 @@ class AdminPdvService
 
     public function users(User $adminPdv, ?string $search = null): LengthAwarePaginator
     {
-        $query = User::query()
-            ->withCount(['vehicles', 'tagPurchases'])
-            ->where('type', UserTypeEnum::Client->value)
-            ->where('user_id_admin_pdv', $adminPdv->id)
-            ->orderByDesc('created_at');
-
-        if ($search !== null && $search !== '') {
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', '%' . $search . '%')
-                    ->orWhere('email', 'like', '%' . $search . '%');
+        $query=$this->consultableUsers($adminPdv)->withCount(['vehicles','tagPurchases'])->orderByDesc('created_at');
+        if($search !== null && $search !== '') $query->where(function ($q) use ($search,$adminPdv) {
+            $q->where('name','like','%'.$search.'%')->orWhere(function ($own) use ($search,$adminPdv) {
+                $own->where('user_id_admin_pdv',$adminPdv->id)->where('email','like','%'.$search.'%');
             });
-        }
-
-        return $query->paginate(10);
+        });
+        $page=$query->paginate(10,['id','name','email','phone','type','created_at','user_id_admin_pdv']);
+        $page->getCollection()->transform(function ($user) use ($adminPdv) {
+            if((int)$user->user_id_admin_pdv !== (int)$adminPdv->id) {
+                $user->email=null;$user->phone=null;
+                $orders=(new PdvSalesService)->operationalFor($adminPdv)->where('user_id',$user->id);
+                $user->vehicles_count=(clone $orders)->distinct()->count('vehicle_id');
+                $user->tag_purchases_count=(clone $orders)->count();
+            }
+            return $user;
+        });
+        return $page;
     }
 
     public function vehicles(User $adminPdv, ?string $search = null): LengthAwarePaginator
@@ -323,56 +313,17 @@ class AdminPdvService
 
     public function createUser(User $adminPdv, array $data): User
     {
-        $user = User::query()->create([
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'password' => Hash::make($data['password']),
-            'cpf' => $data['cpf'] ?? null,
-            'birth_date' => $data['birth_date'] ?? null,
-            'phone' => $data['phone'] ?? null,
-            'type' => UserTypeEnum::Client->value,
-            'pdv_id' => $data['pdv_id'] ?? null,
-            'user_id_admin_pdv' => $adminPdv->id,
-        ]);
-
-        CreateDefaultUserSettingsJob::dispatch($adminPdv->id);
-
-        return $user;
+        throw ValidationException::withMessages(['user'=>'O PDV possui acesso somente de consulta aos usuários. Alterações são feitas pelo cliente ou pelo Super Admin.']);
     }
 
     public function updateUser(User $adminPdv, int $id, array $data): User
     {
-        $user = $this->findUser($adminPdv, $id);
-
-        $fields = array_filter([
-            'name' => $data['name'] ?? null,
-            'email' => $data['email'] ?? null,
-            'cpf' => $data['cpf'] ?? null,
-            'birth_date' => $data['birth_date'] ?? null,
-            'phone' => $data['phone'] ?? null,
-        ], fn($value) => $value !== null);
-
-        if (array_key_exists('pdv_id', $data)) {
-            $fields['pdv_id'] = $data['pdv_id'];
-        }
-
-        if (!empty($data['password'])) {
-            $fields['password'] = Hash::make($data['password']);
-        }
-
-        $fields['type'] = UserTypeEnum::Client->value;
-        $fields['user_id_admin_pdv'] = $adminPdv->id;
-
-        $user->update($fields);
-
-        return $user->fresh();
+        throw ValidationException::withMessages(['user'=>'O PDV possui acesso somente de consulta aos usuários. Alterações são feitas pelo cliente ou pelo Super Admin.']);
     }
 
     public function deleteUser(User $adminPdv, int $id): void
     {
-        $user = $this->findUser($adminPdv, $id);
-
-        $user->delete();
+        throw ValidationException::withMessages(['user'=>'O PDV possui acesso somente de consulta aos usuários. Alterações são feitas pelo cliente ou pelo Super Admin.']);
     }
 
     public function deleteVehicle(User $adminPdv, int $id): void

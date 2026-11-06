@@ -8,7 +8,7 @@ import Button from '~/components/forms/Button.vue';
 import { useToast } from 'primevue/usetoast';
 import { BIOLOGICAL_SEX_OPTIONS } from '~/utils/userBiologicalSex';
 
-definePageMeta({ layout: 'dashboard' });
+definePageMeta({ layout: 'dashboard', middleware: [(to) => { if (to.path.startsWith('/dashboard/admin/usuarios')) return navigateTo('/dashboard/admin/usuarios', { replace: true }); }] });
 const route = useRoute();
 const isSuperAdminView = computed(() => route.path.startsWith('/dashboard/superadmin'));
 const usersBaseRoute = computed(() => isSuperAdminView.value ? '/dashboard/superadmin/usuarios' : '/dashboard/admin/usuarios');

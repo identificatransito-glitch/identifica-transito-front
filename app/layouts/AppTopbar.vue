@@ -132,8 +132,7 @@ const clientSearchSuggestions = computed(() => {
     ];
     const adminPages = [
         { title: 'Início', description: 'Visão geral administrativa', to: '/dashboard/admin', icon: House },
-        { title: 'Usuários', description: 'Gerencie usuários cadastrados', to: '/dashboard/admin/usuarios', icon: UsersRound },
-        { title: 'Veículos', description: 'Consulte os veículos da plataforma', to: '/dashboard/admin/veiculos', icon: CarFront },
+        { title: 'Usuários', description: 'Consulte os clientes do PDV', to: '/dashboard/admin/usuarios', icon: UsersRound },
         { title: 'Pedidos', description: 'Acompanhe pedidos e entregas', to: '/dashboard/admin/pedidos', icon: List }
     ];
     const superAdminPages = [
