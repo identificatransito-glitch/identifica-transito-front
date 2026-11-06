@@ -10,6 +10,6 @@ defineProps<{ disabled?: boolean }>();
             <label for="commission_percentage" class="block mb-2 font-semibold text-[#172b4d]">Percentual de repasse (%)</label>
             <div class="relative"><input id="commission_percentage" :value="model" @input="model = ($event.target as HTMLInputElement).value" type="number" min="0" max="100" step="0.01" inputmode="decimal" placeholder="Informe o percentual" :disabled="disabled" aria-describedby="commission_help" class="w-full rounded-xl border border-[#ccd5e5] bg-white py-3 pl-4 pr-12 text-lg focus:outline-none focus:ring-2 focus:ring-it-primary" /><span aria-hidden="true" class="absolute right-4 top-3 text-[#52667f]">%</span></div>
         </div>
-        <p id="commission_help" class="text-sm text-[#52667f]">De 0% a 100%, com até duas casas decimais. Em branco: repasse não configurado. O percentual é aplicado às vendas aprovadas atribuídas aos usuários deste PDV; a retirada em outro ponto não altera essa atribuição. Alterações recalculam os relatórios dos períodos consultados.</p>
+        <p id="commission_help" class="text-sm text-[#52667f]">De 0% a 100%, com até duas casas decimais. Em branco: repasse não configurado. O percentual é aplicado ao valor dos kits antes de descontos, sem frete, inclusive com cupom de 100%. Em retirada, recebe o PDV escolhido na compra; sem ponto de retirada, recebe o PDV de origem do cadastro. Cada pedido conta para um único PDV. Alterações recalculam os relatórios dos períodos consultados.</p>
     </section>
 </template>

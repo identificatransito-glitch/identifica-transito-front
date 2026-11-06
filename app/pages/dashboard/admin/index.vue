@@ -28,6 +28,8 @@ interface Totals {
     orders: number;
     revenue: number;
     commission_amount: number;
+    commission_base_amount?: number;
+    sold_qty?: number;
 }
 
 interface LatestUser {
@@ -202,12 +204,17 @@ onMounted(fetchDashboard);
                 :loading="loading"
             />
             <StatsCard
-                title="Total de Comissão"
+                title="Valor a Repassar"
                 :value="formatCurrency(totals.commission_amount)"
                 :icon="HandCoins"
                 color="teal"
                 :loading="loading"
             />
+        </section>
+
+        <section class="rounded-xl border border-[#dce2ff] bg-[#f3f5ff] p-4 text-sm text-[#52667f]" aria-label="Regra de repasse">
+            <p><strong>{{ totals.sold_qty ?? 0 }} kit(s) aprovado(s)</strong> · Base do repasse: <strong>{{ formatCurrency(totals.commission_base_amount ?? 0) }}</strong>.</p>
+            <p class="mt-1">O repasse considera o valor dos kits antes dos descontos, sem frete, inclusive em compras com cupom de 100%. Na retirada, recebe o PDV escolhido na compra.</p>
         </section>
 
         <ManagementCharts

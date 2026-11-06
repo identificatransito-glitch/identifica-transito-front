@@ -4,7 +4,7 @@ import Dialog from 'primevue/dialog';
 import { CalendarDays, DollarSign, MapPin, Pencil, Store, Tag, Trash2, X } from '@lucide/vue';
 
 type Point = { access?: { configured: boolean; email: string | null }; commission_percentage?: string | number | null; id: number; name: string; cnpj: string | null; address: string | null; phone: string | null; responsible: string | null; created_at: string };
-type Performance = { total_sales_qty?: number; total_sales_amount?: number; commission_amount?: number };
+type Performance = { total_sales_qty?: number; total_sales_amount?: number; commission_base_amount?: number; commission_amount?: number };
 const props = defineProps<{ visible: boolean; point: Point | null; performance?: Performance; loading?: boolean }>();
 const emit = defineEmits<{ 'update:visible': [value: boolean]; delete: [point: Point] }>();
 const close = () => emit('update:visible', false);
@@ -27,9 +27,10 @@ const cnpj = (value: string | null) => {
 
             <div class="space-y-5 p-5">
                 <section>
-                    <div class="mb-4"><h3 class="m-0 text-[#172b4d]" style="font-size:18px !important;font-weight:600 !important;line-height:1.25;">Resumo do mês</h3></div>
+                    <div class="mb-4"><h3 class="m-0 text-[#172b4d]" style="font-size:18px !important;font-weight:600 !important;line-height:1.25;">Resumo dos pedidos</h3></div>
                     <div v-if="loading" class="grid grid-cols-3 gap-2"><Skeleton v-for="n in 3" :key="n" height="5rem" borderRadius=".75rem" /></div>
-                    <div v-else class="grid grid-cols-3 gap-2"><div class="rounded-xl bg-[#f3f6ff] p-3"><DollarSign :size="18" class="mb-4 text-[#64748b]" /><p class="text-[10px] font-bold uppercase tracking-wide text-[#7284a5]">Faturamento</p><p class="mt-1 text-base font-bold text-[#172b4d]">{{ money(performance?.total_sales_amount) }}</p></div><div class="rounded-xl bg-[#f3f6ff] p-3"><Tag :size="18" class="mb-4 text-[#64748b]" /><p class="text-[10px] font-bold uppercase tracking-wide text-[#7284a5]">Etiquetas</p><p class="mt-1 text-base font-bold text-[#172b4d]">{{ performance?.total_sales_qty ?? 0 }}</p></div><div class="rounded-xl bg-[#f3f6ff] p-3"><CalendarDays :size="18" class="mb-4 text-[#64748b]" /><p class="text-[10px] font-bold uppercase tracking-wide text-[#7284a5]">Repasse</p><p class="mt-1 text-base font-bold text-[#172b4d]">{{ money(performance?.commission_amount) }}</p></div></div>
+                    <div v-else class="grid grid-cols-3 gap-2"><div class="rounded-xl bg-[#f3f6ff] p-3"><DollarSign :size="18" class="mb-4 text-[#64748b]" /><p class="text-[10px] font-bold uppercase tracking-wide text-[#7284a5]">Receita recebida</p><p class="mt-1 text-base font-bold text-[#172b4d]">{{ money(performance?.total_sales_amount) }}</p></div><div class="rounded-xl bg-[#f3f6ff] p-3"><Tag :size="18" class="mb-4 text-[#64748b]" /><p class="text-[10px] font-bold uppercase tracking-wide text-[#7284a5]">Kits aprovados</p><p class="mt-1 text-base font-bold text-[#172b4d]">{{ performance?.total_sales_qty ?? 0 }}</p></div><div class="rounded-xl bg-[#f3f6ff] p-3"><CalendarDays :size="18" class="mb-4 text-[#64748b]" /><p class="text-[10px] font-bold uppercase tracking-wide text-[#7284a5]">Repasse</p><p class="mt-1 text-base font-bold text-[#172b4d]">{{ money(performance?.commission_amount) }}</p></div></div>
+                    <p v-if="!loading" class="mt-3 text-sm text-[#52667f]">Base do repasse, sem descontos e sem frete: <strong>{{ money(performance?.commission_base_amount) }}</strong>. Cupons, inclusive de 100%, não reduzem essa base.</p>
                 </section>
 
                 <section class="border-y border-[#e9eef6] py-1">
