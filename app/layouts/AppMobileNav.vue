@@ -1,6 +1,6 @@
 <script setup>
 import { computed, ref } from 'vue';
-import { CarFront, CircleHelp, CircleUserRound, House, List, MapPin, MoreHorizontal, Phone, Settings, Tag, Ticket, UserPlus, UsersRound } from '@lucide/vue';
+import { Package, CarFront, CircleHelp, CircleUserRound, House, List, MapPin, MoreHorizontal, Phone, Settings, Tag, Ticket, UserPlus, UsersRound } from '@lucide/vue';
 
 const route = useRoute();
 const auth = useAuth();
@@ -51,6 +51,7 @@ const moreItems = computed(() => {
             { label: 'Meu perfil', to: '/dashboard/perfil', icon: CircleUserRound },
             { label: 'Etiquetas', to: '/dashboard/superadmin/etiquetas', icon: Tag },
             { label: 'Cupons de desconto', to: '/dashboard/superadmin/cupons-de-desconto', icon: Ticket },
+            { label: 'Frete', to: '/dashboard/superadmin/frete', icon: Package },
             { label: 'Pontos de venda', to: '/dashboard/superadmin/pontos-de-venda', icon: MapPin },
             { label: 'FAQ', to: '/dashboard/superadmin/faq', icon: CircleHelp }
         ];

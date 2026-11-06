@@ -49,6 +49,7 @@ const pageTitle = computed(() => {
     if (route.path.startsWith('/dashboard/superadmin/etiquetas')) return 'Etiquetas';
     if (route.path.startsWith('/dashboard/superadmin/pedidos')) return 'Pedidos';
     if (route.path.startsWith('/dashboard/superadmin/cupons-de-desconto')) return 'Cupons de Desconto';
+    if (route.path.startsWith('/dashboard/superadmin/frete')) return 'Frete';
     if (route.path.startsWith('/dashboard/superadmin/pontos-de-venda')) return 'Pontos de Venda';
     if (route.path.startsWith('/dashboard/superadmin/faq')) return 'FAQ';
     if (route.path === '/dashboard/superadmin') return 'Início';
@@ -136,6 +137,7 @@ const clientSearchSuggestions = computed(() => {
         { title: 'Pedidos', description: 'Acompanhe pedidos e entregas', to: '/dashboard/admin/pedidos', icon: List }
     ];
     const superAdminPages = [
+        { title: 'Frete', description: 'Configure a cobrança de entrega', to: '/dashboard/superadmin/frete', icon: MapPin },
         { title: 'Início', description: 'Visão geral da plataforma', to: '/dashboard/superadmin', icon: House },
         { title: 'Usuários', description: 'Gerencie todos os níveis de acesso', to: '/dashboard/superadmin/usuarios', icon: UsersRound },
         { title: 'Veículos', description: 'Consulte os veículos cadastrados', to: '/dashboard/superadmin/veiculos', icon: CarFront },

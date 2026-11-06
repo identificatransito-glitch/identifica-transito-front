@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onUnmounted } from 'vue';
+import KitCheckoutSummary from '~/components/shipping/KitCheckoutSummary.vue';
 import HeroSection from '~/components/dashboard/HeroSection.vue';
 import Button from '~/components/forms/Button.vue';
 import InputText from '~/components/forms/InputText.vue';
@@ -100,26 +101,11 @@ const toast = useToast();
 // Veículos selecionados vindos da página de etiquetas
 const selectedVehicles = useState<Vehicle[]>('selectedVehicles', () => []);
 
-// Quantidade por veículo (mapeado por id)
-const quantities = ref<Record<number, number>>({});
-
-const getQty = (id: number) => quantities.value[id] ?? 1;
-
-const getTotalUnits = () => selectedVehicles.value.reduce((sum, v) => sum + getQty(v.id), 0);
-
-const changeQty = (id: number, delta: number) => {
-    const current = getQty(id);
-    const next = Math.max(1, current + delta);
-    quantities.value = { ...quantities.value, [id]: next };
-    couponData.value = null;
-    couponError.value = '';
-};
+// Um kit por veículo selecionado. Não há quantidade editável.
+const getTotalUnits = () => selectedVehicles.value.length;
 
 const removeVehicle = (id: number) => {
     selectedVehicles.value = selectedVehicles.value.filter(v => v.id !== id);
-    const updated = { ...quantities.value };
-    delete updated[id];
-    quantities.value = updated;
     couponData.value = null;
     couponError.value = '';
     if (selectedVehicles.value.length === 0) {
@@ -132,13 +118,23 @@ onMounted(() => {
         navigateTo('/dashboard/etiquetas');
     }
 
+    fetchShippingSettings();
     fetchPickupPoints();
     fetchSavedPickupAddress();
 });
 
-const frete = ref(0.00);
+const shippingSettings=ref({ enabled:false, fixed_amount:0 });
+const shippingLoading=ref(true),shippingError=ref(false);
+const fetchShippingSettings=async()=>{
+ shippingLoading.value=true;shippingError.value=false;
+ try{const {$api}=useNuxtApp();const response:any=await $api('/shipping-settings');const data=response?.data??response;
+  const amount=Number(data.fixed_amount);if(typeof data.enabled!=='boolean'||!Number.isFinite(amount)||amount<0)throw new Error('Invalid shipping settings');
+  shippingSettings.value={enabled:data.enabled,fixed_amount:amount};
+ }catch{shippingError.value=true;}finally{shippingLoading.value=false;}
+};
+const frete=computed(()=>entrega.value==='casa'&&shippingSettings.value.enabled?shippingSettings.value.fixed_amount:0);
 const subtotalKits = computed(() =>
-    selectedVehicles.value.reduce((sum, v) => sum + 29.90 * getQty(v.id), 0)
+    selectedVehicles.value.reduce((sum, v) => sum + 29.90, 0)
 );
 const total = computed(() => subtotalKits.value + frete.value);
 
@@ -157,7 +153,7 @@ const displayTotal = computed(() => couponData.value ? couponData.value.total + 
 const isFree = computed(() => displayTotal.value === 0);
 
 const vehiclesPayload = computed(() =>
-    selectedVehicles.value.flatMap(v => Array.from({ length: getQty(v.id) }, () => ({ id: v.id })))
+    selectedVehicles.value.map(v => ({ id: v.id }))
 );
 
 const applyCoupon = async () => {
@@ -256,6 +252,7 @@ const isCreditCardValid = computed(() => {
 });
 
 const isPaymentButtonDisabled = computed(() => {
+    if (shippingLoading.value || shippingError.value) return true;
     if (!isDeliveryValid.value) return true;
     if (isFree.value) return false;
     if (paymentMethod.value === 'credito') return !isCreditCardValid.value;
@@ -264,6 +261,7 @@ const isPaymentButtonDisabled = computed(() => {
 });
 
 const paymentButtonTooltip = computed(() => {
+    if (shippingLoading.value || shippingError.value) return 'Aguarde a confirmação do frete ou tente carregar novamente.';
     if (!isDeliveryValid.value) return 'Preencha a forma de entrega ou retirada no passo 1 para continuar.';
     if (isFree.value) return undefined;
     if (paymentMethod.value === 'credito' && !isCreditCardValid.value) return 'Preencha todos os dados do cartão de crédito, incluindo CPF.';
@@ -517,6 +515,7 @@ const loadMercadoPago = (): Promise<void> => {
 };
 
 const handlePagar = async () => {
+    if(shippingLoading.value||shippingError.value){toast.add({severity:'warn',summary:'Frete indisponível',detail:'Tente carregar o frete novamente antes de pagar.',life:5000});return;}
     if (isFree.value) {
         loadingPayment.value = true;
         try {
@@ -742,6 +741,7 @@ const handlePagar = async () => {
                 </div>
             </div>
 
+            <div v-if="shippingError" role="alert" class="mb-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">Não foi possível confirmar o frete. <button type="button" class="font-semibold underline" @click="fetchShippingSettings">Tentar novamente</button></div>
             <Stepper value="1" class="w-full">
                 <!-- Step 1: Entrega/Retirada -->
                 <StepItem value="1">
@@ -811,7 +811,7 @@ const handlePagar = async () => {
                                                         <i class="pi pi-truck text-it-primary"></i>
                                                         <span class="text-sm font-medium">Custo de Entrega</span>
                                                     </div>
-                                                    <span class="text-lg font-bold text-it-primary">R$ {{ frete.toFixed(2) }}</span>
+                                                    <span class="text-lg font-bold text-it-primary">{{ shippingLoading ? 'Carregando...' : shippingError ? 'Indisponível' : `R$ ${frete.toFixed(2)}` }}</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -842,59 +842,7 @@ const handlePagar = async () => {
                         <template #default="{ activateCallback }">
                             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                 <!-- Kits -->
-                                <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
-                                    <h3 class="text-lg! color-it-primary font-semibold mb-3">Resumo dos Kits de Etiquetas</h3>
-                                    <div class="space-y-3">
-                                        <div
-                                            v-for="vehicle in selectedVehicles"
-                                            :key="vehicle.id"
-                                            class="flex items-start justify-between gap-3 text-sm text-gray-700 p-3 bg-gray-50 rounded-lg"
-                                        >
-                                            <img :src="getTagImage(vehicle.tag_color)" :alt="`Etiqueta ${vehicle.tag_color}`" class="checkout-summary-tag" />
-                                            <div class="flex-1 space-y-1 min-w-0">
-                                                <p class="font-bold truncate">{{ vehicle.name }}</p>
-                                                <p class="text-gray-500 capitalize">Placa: {{ vehicle.plate?.toUpperCase() }} • {{ vehicle.usage_profile_label }} • Etiqueta {{ vehicle.tag_color }}</p>
-                                                <div class="flex items-center gap-4 justify-between">
-                                                    <!-- Controle de quantidade -->
-                                                    <div class="w-full flex items-center gap-2 mt-2">
-                                                        <button
-                                                            type="button"
-                                                            class="w-7 h-7 rounded-md border border-gray-300 bg-white text-gray-700 flex items-center justify-center hover:bg-gray-100 transition disabled:opacity-40"
-                                                            :disabled="getQty(vehicle.id) <= 1"
-                                                            @click="changeQty(vehicle.id, -1)"
-                                                        >
-                                                            <i class="pi pi-minus text-xs"></i>
-                                                        </button>
-                                                        <span class="w-6 text-center font-semibold tabular-nums">{{ getQty(vehicle.id) }}</span>
-                                                        <button
-                                                            type="button"
-                                                            class="w-7 h-7 rounded-md border border-gray-300 bg-white text-gray-700 flex items-center justify-center hover:bg-gray-100 transition"
-                                                            @click="changeQty(vehicle.id, 1)"
-                                                        >
-                                                            <i class="pi pi-plus text-xs"></i>
-                                                        </button>
-                                                    </div>
-                                                    
-                                                </div>
-                                            </div>
-                                            <div class="flex flex-col items-end gap-2 shrink-0">
-                                                <button
-                                                    type="button"
-                                                    class="text-red-400 hover:text-red-600 transition"
-                                                    v-tooltip.top="'Remover item'"
-                                                    @click="removeVehicle(vehicle.id)"
-                                                >
-                                                    <i class="pi pi-times text-sm"></i>
-                                                </button>
-                                                <span class="font-semibold whitespace-nowrap">R$ {{ (29.90 * getQty(vehicle.id)).toFixed(2) }}</span>
-                                                <p>{{ getQty(vehicle.id) }} unidade{{ getQty(vehicle.id) > 1 ? 's' : '' }}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="border-t border-gray-200 mt-4 pt-3 text-sm font-semibold text-gray-900">
-                                        Subtotal ({{ selectedVehicles.length }} kit{{ selectedVehicles.length > 1 ? 's' : '' }}): R$ {{ subtotalKits.toFixed(2) }}
-                                    </div>
-                                </div>
+                                <KitCheckoutSummary :vehicles="selectedVehicles" @remove="removeVehicle" />
 
                                 <!-- Financeiro -->
                                 <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm space-y-4">
