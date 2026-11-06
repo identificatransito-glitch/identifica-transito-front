@@ -3,7 +3,7 @@ import { ref, computed } from 'vue';
 import AppMenuItem from './AppMenuItem.vue';
 import {
     CarFront, CircleHelp, Cog, House, Info, LayoutDashboard, Phone,
-    List, MapPin, Tag, Ticket, UsersRound
+    List, MapPin, Tag, Ticket, Truck, UsersRound
 } from '@lucide/vue';
 
 const auth = useAuth();
@@ -159,7 +159,8 @@ const superAdminModel = ref([
                 label: 'Cupom de Desconto',
                 icon: Ticket,
                 to: '/dashboard/superadmin/cupons-de-desconto'
-            }
+            },
+            {label:'Frete',icon:Truck,to:'/dashboard/superadmin/frete'}
         ]
     },
     {
