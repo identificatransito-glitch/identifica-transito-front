@@ -320,6 +320,8 @@ const handleCepChange = (value: string) => {
 };
 
 const deliveryValidationShown = ref(false);
+const deliveryFieldInvalid = (field: 'rua' | 'numero' | 'bairro' | 'cidade' | 'estado') =>
+    deliveryValidationShown.value && entrega.value === 'casa' && !String(endereco.value[field] ?? '').trim();
 const requiredDeliveryFields = { rua: 'Logradouro', numero: 'Número', bairro: 'Bairro', cidade: 'Cidade', estado: 'Estado' } as const;
 const missingDeliveryFields = computed(() => entrega.value === 'casa'
     ? Object.entries(requiredDeliveryFields).filter(([key]) => !String(endereco.value[key as keyof typeof requiredDeliveryFields] || '').trim()).map(([, label]) => label)
@@ -814,12 +816,27 @@ const handlePagar = async () => {
                                                 wrapper-class="lg:col-span-3"
                                                 inputClass="w-full"
                                             />
-                                            <InputText v-model="endereco.rua" label="Logradouro" id="delivery-rua" required placeholder="Av. Paulista" icon="pi pi-road" wrapper-class="md:col-span-2 lg:col-span-7" inputClass="w-full" />
-                                            <InputText v-model="endereco.numero" label="Número" id="delivery-numero" required placeholder="1000 ou s/n" icon="pi pi-hashtag" wrapper-class="lg:col-span-5" inputClass="w-full" />
+                                            <div class="md:col-span-2 lg:col-span-7" :class="{ 'delivery-field-error': deliveryFieldInvalid('rua') }">
+                                                <InputText v-model="endereco.rua" label="Logradouro" id="delivery-rua" required placeholder="Av. Paulista" icon="pi pi-road" inputClass="w-full" />
+                                                <p v-if="deliveryFieldInvalid('rua')" role="alert" class="mt-1 text-sm text-red-700">Informe o logradouro.</p>
+                                            </div>
+                                            <div class="lg:col-span-5" :class="{ 'delivery-field-error': deliveryFieldInvalid('numero') }">
+                                                <InputText v-model="endereco.numero" label="Número" id="delivery-numero" required placeholder="1000 ou s/n" icon="pi pi-hashtag" inputClass="w-full" />
+                                                <p v-if="deliveryFieldInvalid('numero')" role="alert" class="mt-1 text-sm text-red-700">Informe o número.</p>
+                                            </div>
                                             <InputText v-model="endereco.complemento" label="Complemento" placeholder="Apto 101" icon="pi pi-building" wrapper-class="lg:col-span-5" inputClass="w-full" />
-                                            <InputText v-model="endereco.bairro" label="Bairro" id="delivery-bairro" required placeholder="Bela Vista" icon="pi pi-map" wrapper-class="lg:col-span-5" inputClass="w-full" />
-                                            <InputText v-model="endereco.cidade" label="Cidade" id="delivery-cidade" required placeholder="São Paulo" icon="pi pi-building" wrapper-class="lg:col-span-5" inputClass="w-full" />
-                                            <SelectInput v-model="endereco.estado" label="Estado" id="delivery-estado" required :options="estados" placeholder="Selecione o estado" icon="pi pi-map-marker" wrapper-class="lg:col-span-5" inputClass="w-full" />
+                                            <div class="lg:col-span-5" :class="{ 'delivery-field-error': deliveryFieldInvalid('bairro') }">
+                                                <InputText v-model="endereco.bairro" label="Bairro" id="delivery-bairro" required placeholder="Bela Vista" icon="pi pi-map" inputClass="w-full" />
+                                                <p v-if="deliveryFieldInvalid('bairro')" role="alert" class="mt-1 text-sm text-red-700">Informe o bairro.</p>
+                                            </div>
+                                            <div class="lg:col-span-5" :class="{ 'delivery-field-error': deliveryFieldInvalid('cidade') }">
+                                                <InputText v-model="endereco.cidade" label="Cidade" id="delivery-cidade" required placeholder="São Paulo" icon="pi pi-building" inputClass="w-full" />
+                                                <p v-if="deliveryFieldInvalid('cidade')" role="alert" class="mt-1 text-sm text-red-700">Informe a cidade.</p>
+                                            </div>
+                                            <div class="lg:col-span-5" :class="{ 'delivery-field-error': deliveryFieldInvalid('estado') }">
+                                                <SelectInput v-model="endereco.estado" label="Estado" id="delivery-estado" required :options="estados" placeholder="Selecione o estado" icon="pi pi-map-marker" inputClass="w-full" />
+                                                <p v-if="deliveryFieldInvalid('estado')" role="alert" class="mt-1 text-sm text-red-700">Informe o estado.</p>
+                                            </div>
                                             <div class="lg:col-span-5 flex flex-col justify-end">
                                                 <label class="block text-sm font-semibold text-gray-900 mb-2">Frete</label>
                                                 <div class="checkout-shipping-field border rounded-lg px-4 flex items-center justify-between">
@@ -1193,6 +1210,12 @@ const handlePagar = async () => {
 </template>
 
 <style scoped>
+.delivery-field-error :deep(input),
+.delivery-field-error :deep(.p-select) {
+    border-color: #dc2626 !important;
+    box-shadow: 0 0 0 1px #dc2626 !important;
+}
+
 .checkout-page {
     --checkout-blue: #1f46ee;
     --checkout-ink: #172b4d;
