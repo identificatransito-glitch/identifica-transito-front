@@ -88,6 +88,7 @@ interface PdvCommission {
     commission_value: number | null;
     total_sales_qty: number;
     total_sales_amount: number;
+    commission_base_amount?: number;
     commission_amount: number;
 }
 
@@ -117,7 +118,7 @@ const fetchDashboard = async () => {
 // ── PDV Commissions (repasses) — SuperAdmin only, uses the same date filter above ──
 const commissions = ref<PdvCommission[]>([]);
 const loadingCommissions = ref(false);
-const rankedCommissions = computed(() => [...commissions.value].sort((first, second) => Number(second.total_sales_amount) - Number(first.total_sales_amount)));
+const rankedCommissions = computed(() => [...commissions.value].sort((first, second) => Number(second.commission_base_amount ?? 0) - Number(first.commission_base_amount ?? 0)));
 const topCommissions = computed(() => rankedCommissions.value.slice(0, 6));
 
 const fetchCommissions = async () => {
@@ -229,7 +230,7 @@ onMounted(() => {
         <section class="management-chart-card">
             <header>
                 <span><Trophy :size="20" :stroke-width="1.9" /></span>
-                <div><h2>Melhores PDVs</h2><p>Ranking por receita no período selecionado acima.</p></div>
+                <div><h2>Melhores PDVs</h2><p>Ranking pelo valor dos kits antes dos descontos, no período selecionado.</p></div>
                 <NuxtLink to="/dashboard/superadmin/pontos-de-venda" class="ml-auto shrink-0 self-center whitespace-nowrap rounded-md px-2 py-1 text-[12.25px] font-semibold text-[#1f46ee] transition-colors hover:bg-[#dbe5ff] hover:text-[#1739d4]">Ver todos</NuxtLink>
             </header>
             <div class="mt-5">
@@ -260,15 +261,16 @@ onMounted(() => {
 
                         <div class="mb-3 grid grid-cols-2 gap-3">
                             <div class="rounded-lg bg-[#f7f9fc] p-3">
-                                <p class="text-[10px] font-bold uppercase tracking-wide text-[#7284a5]">Etiquetas vendidas</p>
+                                <p class="text-[10px] font-bold uppercase tracking-wide text-[#7284a5]">Kits aprovados</p>
                                 <p class="mt-1 text-lg font-bold text-[#172b4d]">{{ item.total_sales_qty }}</p>
                             </div>
                             <div class="rounded-lg bg-[#f7f9fc] p-3">
-                                <p class="text-[10px] font-bold uppercase tracking-wide text-[#7284a5]">Receita no período</p>
+                                <p class="text-[10px] font-bold uppercase tracking-wide text-[#7284a5]">Receita recebida</p>
                                 <p class="mt-1 text-lg font-bold text-[#172b4d]">{{ formatCurrency(item.total_sales_amount) }}</p>
                             </div>
                         </div>
 
+                        <p class="mb-3 text-sm text-[#64748b]">Base do repasse: <strong>{{ formatCurrency(item.commission_base_amount ?? 0) }}</strong><span class="block text-xs">Valor dos kits sem descontos e sem frete.</span></p>
                         <div v-if="item.commission_value !== null" class="mb-3 flex items-center justify-between text-sm text-[#64748b]">
                             <span>Taxa de repasse</span>
                             <span class="font-semibold text-[#52667f]">

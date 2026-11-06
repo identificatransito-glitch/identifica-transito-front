@@ -117,6 +117,7 @@ const formatDate = (d: string) => {
 };
 
 const handleDelete = (user: User) => {
+    if (!isSuperAdminView.value) return;
     confirm.require({
         message: `Tem certeza que deseja excluir o usuário "${user.name}"?`,
         header: 'Confirmar Exclusão',
@@ -149,9 +150,9 @@ onMounted(() => {
     <div class="admin-page space-y-6 md:space-y-7">
         <HeroSection
             title="Usuários"
-            :subtitle="isSuperAdminView ? 'Gerencie todos os níveis de acesso cadastrados na plataforma.' : 'Gerencie os acessos dos usuários vinculados ao seu ponto de venda.'"
+            :subtitle="isSuperAdminView ? 'Gerencie todos os níveis de acesso cadastrados na plataforma.' : 'Consulte os clientes vinculados aos pedidos do seu ponto de venda. Cadastro e alterações são feitos pelo cliente ou pelo Super Admin.'"
             :greeting="isSuperAdminView ? 'Acessos da plataforma' : 'Acessos do seu PDV'"
-            :showButton="true"
+            :showButton="isSuperAdminView"
             buttonLabel="Novo Usuário"
             :buttonLink="`${usersBaseRoute}/novo`"
             buttonIcon="pi pi-plus"
@@ -199,7 +200,7 @@ onMounted(() => {
                             <th class="text-center py-3 px-4 text-gray-700 font-semibold">Veículos</th>
                             <th class="text-center py-3 px-4 text-gray-700 font-semibold">Tags</th>
                             <th class="text-center py-3 px-4 text-gray-700 font-semibold">Cadastro</th>
-                            <th class="text-center py-3 px-4 text-gray-700 font-semibold">Ações</th>
+                            <th v-if="isSuperAdminView" class="text-center py-3 px-4 text-gray-700 font-semibold">Ações</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -215,7 +216,7 @@ onMounted(() => {
                                     class="w-8 h-8 rounded-full object-cover"
                                 /><span class="font-medium text-gray-900">{{ u.name }}</span></div>
                             </td>
-                            <td class="py-3 px-4 text-center text-gray-600">{{ u.email }}</td>
+                            <td class="py-3 px-4 text-center text-gray-600">{{ u.email || '—' }}</td>
                             <td class="py-3 px-4 text-center">
                                 <span class="px-2 py-0.5 rounded-full text-xs font-medium" :class="typeLabel(u.type).class">
                                     {{ typeLabel(u.type).label }}
@@ -234,7 +235,7 @@ onMounted(() => {
                                 </span>
                             </td>
                             <td class="py-3 px-4 text-center text-gray-500">{{ formatDate(u.created_at) }}</td>
-                            <td class="py-3 px-4">
+                            <td v-if="isSuperAdminView" class="py-3 px-4">
                                 <div class="flex items-center justify-center gap-2">
                                     <NuxtLink
                                         :to="`${usersBaseRoute}/${u.id}/editar`"
@@ -261,7 +262,7 @@ onMounted(() => {
                 <article v-for="u in filteredUsers" :key="u.id" class="rounded-2xl border border-[#e4eaf2] bg-white p-4">
                     <header class="flex items-center gap-3">
                         <img :src="assetWithBase(u.photo || '/images/dashboard/avatar.jpg')" :alt="u.name" class="h-11 w-11 rounded-full object-cover ring-2 ring-white" />
-                        <div class="min-w-0 flex-1"><p class="mb-0 truncate text-sm font-bold text-[#172b4d]">{{ u.name }}</p><p class="mt-0.5 mb-0 truncate text-xs text-[#52667f]">{{ u.email }}</p></div>
+                        <div class="min-w-0 flex-1"><p class="mb-0 truncate text-sm font-bold text-[#172b4d]">{{ u.name }}</p><p class="mt-0.5 mb-0 truncate text-xs text-[#52667f]">{{ u.email || '—' }}</p></div>
                         <span :class="typeLabel(u.type).class" class="shrink-0 rounded-full px-2 py-1 text-xs font-medium">{{ typeLabel(u.type).label }}</span>
                     </header>
                     <dl class="mt-4 grid grid-cols-3 border-t border-[#edf1f6] pt-3 text-center text-xs text-[#64748b]">
@@ -269,7 +270,7 @@ onMounted(() => {
                         <div><dt class="mb-1 text-[10px] font-bold uppercase tracking-wide text-[#8291a7]">Tags</dt><dd class="m-0 font-semibold text-[#172b4d]">{{ u.tag_purchases_count ?? 0 }}</dd></div>
                         <div><dt class="mb-1 text-[10px] font-bold uppercase tracking-wide text-[#8291a7]">Cadastro</dt><dd class="m-0 font-semibold text-[#172b4d]">{{ formatDate(u.created_at) }}</dd></div>
                     </dl>
-                    <div class="mt-4 flex gap-2 border-t border-[#edf1f6] pt-3">
+                    <div v-if="isSuperAdminView" class="mt-4 flex gap-2 border-t border-[#edf1f6] pt-3">
                         <NuxtLink :to="`${usersBaseRoute}/${u.id}/editar`" class="flex flex-1 items-center justify-center gap-2 rounded-lg border border-[#d8dee8] py-2 text-xs font-semibold text-[#52667f] hover:bg-[#eef2ff] hover:text-[#1f46ee]"><i class="pi pi-pen-to-square"></i>Editar</NuxtLink>
                         <button @click="handleDelete(u)" class="flex flex-1 items-center justify-center gap-2 rounded-lg border border-red-200 py-2 text-xs font-semibold text-red-500 hover:bg-red-50"><i class="pi pi-trash"></i>Excluir</button>
                     </div>

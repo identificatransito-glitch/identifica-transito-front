@@ -208,17 +208,12 @@ const adminModel = ref([
         ]
     },
     {
-        label: 'GESTÃO DO PDV',
+        label: 'CONSULTA DO PDV',
         items: [
             {
                 label: 'Usuários',
                 icon: UsersRound,
                 to: '/dashboard/admin/usuarios'
-            },
-            {
-                label: 'Veículos',
-                icon: CarFront,
-                to: '/dashboard/admin/veiculos'
             }
         ]
     },
