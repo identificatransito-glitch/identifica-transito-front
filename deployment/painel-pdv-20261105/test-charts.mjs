@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';import vm from 'node:vm';import {stripTypeScriptTypes} from 'node:module';
+const source=readFileSync('identifica-transito-front-trabalho/app/components/dashboard/ManagementCharts.vue','utf8').split('<script setup lang="ts">')[1].split('</script>')[0].replace(/^import .*;$/mg,'');
+let n=0;const ok=c=>{assert.ok(c);n++};const props={authoritativeData:true,tagSales:[{tag_slug:'verde',qty:15}],balanceHistory:[{date:'2026-11-04',balance:5.98}],dateFrom:'2026-01-01',dateTo:'2026-11-05',balanceKind:'commission',latestOrders:[{tag_slug:'azul',qty:1,created_at:'2026-11-04',mp_payment_status:'approved',price_total:100}]};
+const box={defineProps:()=>props,computed:fn=>({get value(){return fn();}}),Intl,Map};vm.runInNewContext(stripTypeScriptTypes(source)+ '\nglobalThis.out={tagSales,balanceSeries,balanceData,balanceOptions,totalKits,lastBalance,hasBalance,hasTagSales};',box);const o=box.out;
+ok(o.totalKits.value===15);ok(o.tagSales.value.find(t=>t.slug==='azul').quantity===0);ok(o.lastBalance.value===5.98);ok(o.balanceData.value.datasets[0].label==='Repasse calculado acumulado');ok(o.balanceOptions.scales.y.ticks.callback(5.98).includes('5,98'));
+props.tagSales=[];props.balanceHistory=[];ok(!o.hasTagSales.value);ok(!o.hasBalance.value);ok(o.lastBalance.value===0);
+props.tagSales=[{tag_slug:'sem-classificacao',qty:2}];ok(o.totalKits.value===2);ok(o.tagSales.value.find(t=>t.slug==='sem-classificacao').quantity===2);
+props.balanceHistory=[{date:'2025-01-01',balance:99},{date:'2026-11-04',balance:8.97}];ok(o.balanceSeries.value.length===1);ok(o.lastBalance.value===8.97);
+props.authoritativeData=false;props.tagSales=[];props.balanceHistory=[];props.latestOrders=[{tag_slug:'azul',qty:10,status:1,mp_payment_status:'pending',created_at:'2026-11-04',price_total:100},{tag_slug:'verde',qty:1,status:1,mp_payment_status:'approved',created_at:'2026-11-04',price_total:29.9}];ok(o.totalKits.value===1);ok(o.lastBalance.value===29.9);
+console.log(`PASS ${n} verificações dos gráficos reais: período completo, fonte autoritativa, cupons, precisão monetária e fallback aprovado.`);

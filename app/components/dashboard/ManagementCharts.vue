@@ -34,6 +34,8 @@ const props = defineProps<{
     dateFrom?: string;
     dateTo?: string;
     loading?: boolean;
+    balanceKind?: 'revenue' | 'commission';
+    authoritativeData?: boolean;
 }>();
 
 const tagDefinitions = [
@@ -73,21 +75,22 @@ const filteredOrders = computed(() => (props.latestOrders ?? []).filter((order) 
 
 const tagSales = computed(() => {
     const quantities = new Map(tagDefinitions.map((tag) => [tag.slug, 0]));
-    const source = props.tagSales?.length ? props.tagSales : filteredOrders.value;
+    const source = props.authoritativeData || props.tagSales?.length ? (props.tagSales ?? []) : filteredOrders.value.filter(order => order.mp_payment_status === 'approved');
 
     for (const item of source) {
         const slug = getTagSlug(item);
         const sale = item as DashboardOrder & TagSale;
-        if (!quantities.has(slug)) continue;
-        quantities.set(slug, (quantities.get(slug) ?? 0) + Number(sale.quantity ?? sale.qty ?? 0));
+        if (!quantities.has(slug)) quantities.set(slug || 'sem-classificacao', 0);
+        quantities.set(slug || 'sem-classificacao', (quantities.get(slug || 'sem-classificacao') ?? 0) + Number(sale.quantity ?? sale.qty ?? 0));
     }
 
-    return tagDefinitions.map((tag) => ({ ...tag, quantity: quantities.get(tag.slug) ?? 0 }));
+    const definitions=[...tagDefinitions,...[...quantities.keys()].filter(slug=>!tagDefinitions.some(tag=>tag.slug===slug)).map(slug=>({slug,label:'Não informado',color:'#64748b'}))];
+    return definitions.map((tag) => ({ ...tag, quantity: quantities.get(tag.slug) ?? 0 }));
 });
 
 const balanceSeries = computed(() => {
-    if (props.balanceHistory?.length) {
-        return props.balanceHistory
+    if (props.authoritativeData || props.balanceHistory?.length) {
+        return (props.balanceHistory ?? [])
             .map((point) => ({ date: normalizeDate(point.date), value: Number(point.balance ?? point.value ?? 0) }))
             .filter((point): point is { date: string; value: number } => Boolean(point.date && isWithinSelectedPeriod(point.date)))
             .sort((a, b) => a.date.localeCompare(b.date));
@@ -96,7 +99,7 @@ const balanceSeries = computed(() => {
     const dailyValues = new Map<string, number>();
     for (const order of filteredOrders.value) {
         const date = normalizeDate(order.created_at);
-        const isApproved = order.mp_payment_status === 'approved' || order.status === 1;
+        const isApproved = order.mp_payment_status === 'approved';
         if (!date || !isApproved) continue;
         dailyValues.set(date, (dailyValues.get(date) ?? 0) + Number(order.price_total ?? 0));
     }
@@ -141,7 +144,7 @@ const distributionOptions = {
 const balanceData = computed(() => ({
     labels: balanceSeries.value.map((point) => formatShortDate(point.date)),
     datasets: [{
-        label: 'Saldo acumulado',
+        label: props.balanceKind === 'commission' ? 'Repasse calculado acumulado' : 'Receita acumulada',
         data: balanceSeries.value.map((point) => point.value),
         borderColor: '#1f46ee',
         backgroundColor: 'rgba(31, 70, 238, 0.1)',
@@ -166,7 +169,7 @@ const balanceOptions = {
             beginAtZero: true,
             ticks: {
                 color: '#64748b',
-                callback: (value: string | number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(Number(value)),
+                callback: (value: string | number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(value)),
                 font: { family: 'Figtree', size: 11 }
             },
             grid: { color: '#edf1f6' },
@@ -189,6 +192,9 @@ const balanceOptions = {
     }
 };
 
+const chartMoney=(value:number)=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(value);
+const lastBalance=computed(()=>balanceSeries.value.at(-1)?.value ?? 0);
+const totalKits=computed(()=>tagSales.value.reduce((sum,tag)=>sum+tag.quantity,0));
 const hasTagSales = computed(() => tagSales.value.some((tag) => tag.quantity > 0));
 const hasBalance = computed(() => balanceSeries.value.length > 0);
 </script>
@@ -200,9 +206,10 @@ const hasBalance = computed(() => balanceSeries.value.length > 0);
                 <span><ChartPie :size="20" :stroke-width="1.9" /></span>
                 <div>
                     <h2>Etiquetas vendidas</h2>
-                    <p>Quantidade vendida por tipo de etiqueta no período.</p>
+                    <p>Kits aprovados por tipo de etiqueta no período, inclusive com cupom de 100%.</p>
                 </div>
             </header>
+            <p v-if="!loading && hasTagSales" class="mb-3 text-sm font-semibold text-[#172b4d]">{{ totalKits }} kit(s) aprovado(s)</p>
             <Skeleton v-if="loading" height="18rem" class="rounded-xl!" />
             <div v-else-if="hasTagSales" class="management-chart-canvas management-chart-canvas--doughnut">
                 <Chart class="management-chart" type="doughnut" :height="272" :data="distributionData" :options="distributionOptions" />
@@ -218,10 +225,11 @@ const hasBalance = computed(() => balanceSeries.value.length > 0);
             <header>
                 <span><Activity :size="20" :stroke-width="1.9" /></span>
                 <div>
-                    <h2>Evolução do saldo</h2>
-                    <p>Saldo acumulado a partir dos pedidos aprovados no período.</p>
+                    <h2>{{ balanceKind === 'commission' ? 'Evolução do repasse' : 'Evolução da receita' }}</h2>
+                    <p>{{ balanceKind === 'commission' ? 'Repasse calculado dos kits aprovados no período, antes dos descontos e sem frete. Não representa valores já transferidos.' : 'Receita acumulada dos pedidos aprovados no período.' }}</p>
                 </div>
             </header>
+            <p v-if="!loading && hasBalance" class="mb-3 text-sm font-semibold text-[#172b4d]">{{ balanceKind === 'commission' ? 'Repasse calculado no período' : 'Receita no período' }}: {{ chartMoney(lastBalance) }}</p>
             <Skeleton v-if="loading" height="18rem" class="rounded-xl!" />
             <div v-else-if="hasBalance" class="management-chart-canvas">
                 <Chart class="management-chart" type="line" :height="272" :data="balanceData" :options="balanceOptions" />
