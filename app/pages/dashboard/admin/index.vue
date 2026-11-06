@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { recentOrderCard } from '~/utils/recentOrderCard';
 import HeroSection from '~/components/dashboard/HeroSection.vue';
 import StatsCard from '~/components/dashboard/StatsCard.vue';
 import RecentOrdersPanel from '~/components/dashboard/RecentOrdersPanel.vue';
@@ -54,6 +55,11 @@ interface LatestOrder {
     created_at: string;
     tag_name?: string | null;
     tag_slug?: string | null;
+    tag?: { name?: string; slug?: string } | null;
+    pickup_point?: { id?: number; name?: string; label?: string } | null;
+    delivery?: Record<string, unknown> | null;
+    shipping_price?: string | number;
+    mp_payment_status_detail?: string;
     shipment?: { status?: number | string | null } | null;
     vehicle: {
         id: number;
@@ -77,29 +83,12 @@ const loading = ref(false);
 const dashboardData = ref<DashboardData | null>(null);
 const periodFilterRef = ref<{ open: (event: Event) => void } | null>(null);
 
-const totals = computed(() => dashboardData.value?.totals ?? { users: 0, vehicles: 0, orders: 0, revenue: 0, commission_amount: 0 });
+const totals = computed<Totals>(() => dashboardData.value?.totals ?? { users: 0, vehicles: 0, orders: 0, revenue: 0, commission_amount: 0 });
 const latestUsers = computed(() => dashboardData.value?.latest_users ?? []);
 const latestOrders = computed(() => dashboardData.value?.latest_orders ?? []);
 const tagSales = computed(() => dashboardData.value?.tag_sales ?? []);
 const balanceHistory = computed(() => dashboardData.value?.balance_history ?? []);
-const recentOrderCards = computed(() => latestOrders.value.slice(0, 4).map((order) => {
-    const paymentStatus = String(order.mp_payment_status ?? '').toLowerCase();
-    const shipmentStatus = String(order.shipment?.status ?? '').toLowerCase();
-    const status: 'em-andamento' | 'em-rota' | 'entregue' | 'cancelado' =
-        ['4', 'entregue', 'delivered'].includes(shipmentStatus)
-            ? 'entregue'
-            : ['5', '6', 'failed', 'returned', 'devolvido'].includes(shipmentStatus) || ['cancelled', 'cancelado', 'rejected', 'rejeitado'].includes(paymentStatus)
-                ? 'cancelado'
-                : ['2', '3', 'in_transit', 'out_for_delivery', 'em trânsito', 'em transito'].includes(shipmentStatus)
-                    ? 'em-rota'
-                    : 'em-andamento';
-
-    return {
-        id: `#PED-${order.mp_payment_id || order.id}`,
-        title: `${order.tag_name || order.vehicle?.name || `Pedido ${order.id}`} - ${order.qty} ${order.qty === 1 ? 'unidade' : 'unidades'}`,
-        status
-    };
-}));
+const recentOrderCards = computed(() => latestOrders.value.slice(0, 4).map(recentOrderCard));
 
 const fetchDashboard = async () => {
     loading.value = true;
@@ -221,6 +210,8 @@ onMounted(fetchDashboard);
             :latest-orders="latestOrders"
             :tag-sales="tagSales"
             :balance-history="balanceHistory"
+            balance-kind="commission"
+            :authoritative-data="true"
             :date-from="dateFrom"
             :date-to="dateTo"
             :loading="loading"
@@ -267,7 +258,7 @@ onMounted(fetchDashboard);
                             <tbody>
                                 <tr v-for="u in latestUsers" :key="u.id" class="border-b border-[#edf1f5] last:border-b-0 hover:bg-[#f7f9ff] transition-colors">
                                     <td class="px-4 py-3 font-semibold text-[#172b4d]">{{ u.name }}</td>
-                                    <td class="break-words px-4 py-3 text-center text-[#52667f]">{{ u.email }}</td>
+                                    <td class="break-words px-4 py-3 text-center text-[#52667f]">{{ u.email || 'Não informado' }}</td>
                                     <td class="px-4 py-3 text-center"><span class="rounded-full bg-[#f1f5f9] px-2 py-0.5 text-xs font-medium text-[#64748b]">{{ typeLabel(u.type) }}</span></td>
                                     <td class="whitespace-nowrap px-4 py-3 text-center text-[#64748b]">{{ formatDate(u.created_at) }}</td>
                                 </tr>
@@ -279,7 +270,7 @@ onMounted(fetchDashboard);
                         <article v-for="u in latestUsers" :key="u.id" class="rounded-2xl border border-[#e4eaf2] bg-white p-4">
                             <header class="flex items-center gap-3">
                                 <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#eef2ff] text-[#1f46ee]"><UsersRound :size="20" :stroke-width="2" /></span>
-                                <div class="min-w-0 flex-1"><p class="mb-0 truncate text-sm font-bold text-[#172b4d]">{{ u.name }}</p><p class="mt-0.5 mb-0 truncate text-xs text-[#52667f]">{{ u.email }}</p></div>
+                                <div class="min-w-0 flex-1"><p class="mb-0 truncate text-sm font-bold text-[#172b4d]">{{ u.name }}</p><p class="mt-0.5 mb-0 truncate text-xs text-[#52667f]">{{ u.email || 'Não informado' }}</p></div>
                                 <span class="shrink-0 rounded-full bg-[#f1f5f9] px-2 py-1 text-xs font-medium text-[#64748b]">{{ typeLabel(u.type) }}</span>
                             </header>
                             <dl class="mt-4 grid grid-cols-2 gap-3 border-t border-[#edf1f6] pt-3 text-center text-xs text-[#64748b]"><div><dt class="mb-1 text-[10px] font-bold uppercase tracking-wide text-[#8291a7]">Tipo</dt><dd class="m-0 font-semibold text-[#172b4d]">{{ typeLabel(u.type) }}</dd></div><div><dt class="mb-1 text-[10px] font-bold uppercase tracking-wide text-[#8291a7]">Cadastro</dt><dd class="m-0 font-semibold text-[#172b4d]">{{ formatDate(u.created_at) }}</dd></div></dl>
