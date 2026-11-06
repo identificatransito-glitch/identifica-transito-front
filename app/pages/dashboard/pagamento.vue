@@ -300,13 +300,13 @@ const buscarCEP = async (cep: string) => {
     try {
         const response = await fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`);
         const data = await response.json();
-        if (data.erro) { cepError.value = 'CEP não encontrado'; return; }
+        if (data.erro) { cepError.value = 'CEP não encontrado. Você pode preencher o endereço manualmente.'; return; }
         endereco.value.rua = data.logradouro;
         endereco.value.bairro = data.bairro;
         endereco.value.cidade = data.localidade;
         endereco.value.estado = data.uf;
     } catch (error) {
-        cepError.value = 'Erro ao buscar CEP';
+        cepError.value = 'Não foi possível consultar o CEP. Preencha o endereço manualmente.';
         console.error(error);
     } finally {
         loadingCep.value = false;
@@ -315,16 +315,25 @@ const buscarCEP = async (cep: string) => {
 
 const handleCepChange = (value: string) => {
     endereco.value.cep = value;
+    cepError.value = '';
     buscarCEP(value);
 };
 
-const isDeliveryValid = computed(() => {
-    if (entrega.value === 'casa') {
-        const { cep, rua, numero, bairro, cidade, estado } = endereco.value;
-        return !![cep, rua, numero, bairro, cidade, estado].every(v => v?.trim());
-    }
-    return pontosColetaOptions.value.length > 0;
-});
+const deliveryValidationShown = ref(false);
+const requiredDeliveryFields = { rua: 'Logradouro', numero: 'Número', bairro: 'Bairro', cidade: 'Cidade', estado: 'Estado' } as const;
+const missingDeliveryFields = computed(() => entrega.value === 'casa'
+    ? Object.entries(requiredDeliveryFields).filter(([key]) => !String(endereco.value[key as keyof typeof requiredDeliveryFields] || '').trim()).map(([, label]) => label)
+    : []);
+const isDeliveryValid = computed(() => entrega.value === 'casa'
+    ? missingDeliveryFields.value.length === 0
+    : pontosColetaOptions.value.length > 0);
+const validateDelivery = () => {
+    deliveryValidationShown.value = true;
+    return isDeliveryValid.value;
+};
+const continueDelivery = (activateCallback: (step: number) => void) => {
+    if (validateDelivery()) activateCallback(2);
+};
 
 const isBoletoValid = computed(() => {
     const { cep, rua, numero, bairro, cidade, estado } = boletoEndereco.value;
@@ -515,6 +524,10 @@ const loadMercadoPago = (): Promise<void> => {
 };
 
 const handlePagar = async () => {
+    if (!validateDelivery()) {
+        toast.add({ severity: 'warn', summary: 'Confira a entrega', detail: entrega.value === 'casa' ? `Preencha: ${missingDeliveryFields.value.join(', ')}.` : 'Selecione um ponto de retirada disponível.', life: 5000 });
+        return;
+    }
     if(shippingLoading.value||shippingError.value){toast.add({severity:'warn',summary:'Frete indisponível',detail:'Tente carregar o frete novamente antes de pagar.',life:5000});return;}
     if (isFree.value) {
         loadingPayment.value = true;
@@ -783,13 +796,16 @@ const handlePagar = async () => {
                             <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
                                 <div class="checkout-delivery-form lg:col-span-3 space-y-4">
                                     <div v-if="entrega === 'casa'">
+                                        <p class="mb-4 text-sm text-gray-600">Preencha os campos com *. O CEP é opcional: você pode digitar o endereço completo sem ele.</p>
+                                        <p v-if="deliveryValidationShown && missingDeliveryFields.length" role="alert" class="mb-4 text-sm text-red-700">Preencha os campos obrigatórios: {{ missingDeliveryFields.join(', ') }}.</p>
                                         <div v-if="cepError" class="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700 mb-4">
                                             {{ cepError }}
                                         </div>
                                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-10 gap-4">
                                             <InputText
                                                 v-model="endereco.cep"
-                                                label="CEP"
+                                                label="CEP (opcional)"
+                                                id="delivery-cep"
                                                 placeholder="00000-000"
                                                 mask="99999-999"
                                                 icon="pi pi-map-marker"
@@ -798,12 +814,12 @@ const handlePagar = async () => {
                                                 wrapper-class="lg:col-span-3"
                                                 inputClass="w-full"
                                             />
-                                            <InputText v-model="endereco.rua" label="Logradouro" placeholder="Av. Paulista" icon="pi pi-road" wrapper-class="md:col-span-2 lg:col-span-7" inputClass="w-full" />
-                                            <InputText v-model="endereco.numero" label="Número" placeholder="1000" type="number" icon="pi pi-hashtag" wrapper-class="lg:col-span-5" inputClass="w-full" />
+                                            <InputText v-model="endereco.rua" label="Logradouro" id="delivery-rua" required placeholder="Av. Paulista" icon="pi pi-road" wrapper-class="md:col-span-2 lg:col-span-7" inputClass="w-full" />
+                                            <InputText v-model="endereco.numero" label="Número" id="delivery-numero" required placeholder="1000 ou s/n" icon="pi pi-hashtag" wrapper-class="lg:col-span-5" inputClass="w-full" />
                                             <InputText v-model="endereco.complemento" label="Complemento" placeholder="Apto 101" icon="pi pi-building" wrapper-class="lg:col-span-5" inputClass="w-full" />
-                                            <InputText v-model="endereco.bairro" label="Bairro" placeholder="Bela Vista" icon="pi pi-map" :readonly="true" wrapper-class="lg:col-span-5" inputClass="w-full" />
-                                            <InputText v-model="endereco.cidade" label="Cidade" placeholder="São Paulo" icon="pi pi-building" :readonly="true" wrapper-class="lg:col-span-5" inputClass="w-full" />
-                                            <SelectInput v-model="endereco.estado" label="Estado" :options="estados" placeholder="Selecione o estado" icon="pi pi-map-marker" :readonly="true" wrapper-class="lg:col-span-5" inputClass="w-full" />
+                                            <InputText v-model="endereco.bairro" label="Bairro" id="delivery-bairro" required placeholder="Bela Vista" icon="pi pi-map" wrapper-class="lg:col-span-5" inputClass="w-full" />
+                                            <InputText v-model="endereco.cidade" label="Cidade" id="delivery-cidade" required placeholder="São Paulo" icon="pi pi-building" wrapper-class="lg:col-span-5" inputClass="w-full" />
+                                            <SelectInput v-model="endereco.estado" label="Estado" id="delivery-estado" required :options="estados" placeholder="Selecione o estado" icon="pi pi-map-marker" wrapper-class="lg:col-span-5" inputClass="w-full" />
                                             <div class="lg:col-span-5 flex flex-col justify-end">
                                                 <label class="block text-sm font-semibold text-gray-900 mb-2">Frete</label>
                                                 <div class="checkout-shipping-field border rounded-lg px-4 flex items-center justify-between">
@@ -829,7 +845,7 @@ const handlePagar = async () => {
                             </div>
                             </div>
                             <div class="flex justify-end pt-6">
-                                <Button variant="secondary" label="Continuar" size="sm" icon="pi pi-chevron-right" buttonClass="checkout-step-next" @click="activateCallback(2)" />
+                                <Button variant="secondary" label="Continuar" size="sm" icon="pi pi-chevron-right" buttonClass="checkout-step-next" @click="continueDelivery(activateCallback)" />
                             </div>
                         </template>
                     </StepPanel>
